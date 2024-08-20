@@ -1,0 +1,43 @@
+{% extends 'inicio/base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es" 
+
+{% load static %}>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horarios</title>
+    <link rel="stylesheet" href="{% static '' %}">
+</head>
+
+<body>
+    <div class="menu-container">
+
+
+        <h3> Horarios </h3>
+
+        <div class="content">
+
+            <p> ~ Lunes 7:00am a 4:00pm </p>
+            <p> ~ Martes 7:00am a 4:00pm</p>
+            <p> ~ Miercoles 7:00am a 4:00pm</p>
+            <p> ~ Jueves 7:00am a 4:00pm</p>
+            <p> ~ Viernes 7:00am a 4:00pm</p>
+            <p> ~ Sabado 7:30am a 1:00pm</p>
+        </div>
+
+        <div class="txt">
+            <p>
+                Te esperamos!
+            </p>
+        </div>
+    </div>
+</body>
+
+
+</html>
+
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "inicio/base.html" %}
+
+{% block content %}
+
+<main class="px-3">
+
+    {% if request.user.is_authenticated %}
+
+    <div class="header-content container">
+
+        {% if request.user.is_authenticated %}
+
+        <p class="lead">{% if request.user.is_authenticated %}Bienvenido {{ user.username | upper }}. {% endif %}
+        </p>
+
+        {% else %}
+        <p>
+            Bienvenidos!
+        </p>
+        {% endif %}
+
+        <h1> CEDIS C.A </h1>
+        <p>Siempre siendo líderes en el apoyo al diagnóstico clínico profesional, conformado por un
+            equipo de profesionales y trabajando siempre en la búsqueda
+            de la excelencia a través de un servicio fiable, eficiente y de calidad.
+        </p>
+
+    </div>
+</header>
+
+
+<section class="Salud-coffe">
+
+    <img class="salud-coffe-img" src="#" alt="">
+
+    <div class="Salud-content container">
+
+        <h2>
+            ¿Quienes Somos?
+        </h2>
+
+        <p class="txt-p">
+            Un Laboratorio de vanguardia a nivel Regional, ofrecer una alternativa para el diagnóstico con
+            información válida y
+            oportuna sobre la ocurrencia de enfermedades, así como sus factores condicionantes, para la toma de
+            decisiones y
+            la ejecución de acciones de prevención y control como un puntal para mejorar la calidad de vida de la
+            ciudadanía en general.
+        </p>
+
+        <div class="salud-coffe-group">
+
+            <div class="salud-coffe-1">
+
+                <img src="#" alt="">
+
+                <p>
+                    Responsabilidad en nuestros procedimientos.
+                </p>
+            </div>
+
+            <div class="salud-coffe-1">
+                <img src="#" alt="">
+
+                <p>
+                    Excelencia en nuestros servicios.
+                </p>
+            </div>
+
+            <div class="salud-coffe-1">
+                <img src="#" alt="">
+
+                <p>
+                    Personal médico y técnico calificado.
+                </p>
+            </div>
+        </div>
+
+
+    </div>
+
+</section>
+
+
+<main class="Servicios">
+
+    <div class="servicios-content container">
+
+        <h2> Servicios que ofrecemos </h2>
+
+        <div class="servicios-group">
+
+            <div class="services-1">
+                <img src="#" alt="">
+                <h3> Servicio: </h3>
+
+                <p> Hematologia completa </p>
+                <p> Quimica Sanguinea </p>
+                <p> Examen de orina </p>
+            </div>
+
+            <div class="services-1">
+                <img src="#" alt="">
+                <h3> Servicio: </h3>
+                <p> Examen de heces </p>
+                <p> Marcadores Tumorales</p>
+                <p> Inmunoserologia </p>
+            </div>
+
+            <div class="services-1">
+                <img src="#" alt="">
+                <h3> Servicio:</h3>
+                <p> Perfiles Hormonales </p>
+                <p>Prueba de embarazo</p>
+                <p> Otros. </p>
+            </div>
+        </div>
+
+
+    </div>
+</main>
+
+<section class="general">
+
+    <div class="general-1">
+        <h3> Ubicación </h3>
+        <p class="p-general">
+            Avenida principal de la cruz,
+            centro comercial Mini-Mini, local 2, Maturín 6201, Monagas
+
+        </p>
+        <a href="https://maps.app.goo.gl/Fp4qQPdqWaQvH5QS6" class="btn-1"> Informacion </a>
+    </div>
+
+    <div class="general-2"> </div>
+</section>
+
+<section class="general">
+
+    <div class="general-3"> </div>
+
+    <div class="general-1">
+        <h2> Somos especialistas en darle valor a tu salud.</h2>
+        <p class="p-general-1">
+            ¡No siga buscando excusas para posponer su salud,
+            Confía en la precisión de nuestros análisis para cuidar tu bienestar!
+
+        </p>
+
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-content container">
+
+        <div class="link">
+            <h3> Contactos. </h3>
+            <ul>
+
+                <li><a href="#"> 0424-905-1134 </a></li>
+                <li><a href="#"> 0424-913-6761 </a></li>
+
+            </ul>
+
+        </div>
+
+        <div class="link">
+            <h3> Redes sociales </h3>
+
+            <div class="sociales">
+
+                <ul>
+
+                    <li><a href="#"> Facebook </a></li>
+                    <li><a href="#"> instagram </a></li>
+
+                </ul>
+
+
+            </div>
+</footer>
+
+    <p class="lead">{% if request.user.is_authenticated %} {% endif %}. </p>
+
+    {% else %}
+
+
+
+    {% endif %}
+
+</main>
+
+
+{% endblock %}
