@@ -37,7 +37,9 @@ def register(request):
 
     return render(request, 'registration/register.html', data)
 
-@login_required
+
 ##Dashboard
+@login_required
+
 def index(request):
     return render(request, 'adminlite/index.html')
