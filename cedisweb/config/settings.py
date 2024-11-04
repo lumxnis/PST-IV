@@ -42,10 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'adminlite.apps.AdminliteConfig',
-    'pacientes',
-    'insumos',
-    'examenes',
-    'proveedores',
+    'pacientes.apps.PacientesConfig',
+    'insumos.apps.InsumosConfig',
+    'examenes.apps.ExamenesConfig',
+    'proveedores.apps.ProveedoresConfig',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
