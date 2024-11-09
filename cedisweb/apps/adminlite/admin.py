@@ -1,15 +1,16 @@
 from django.contrib import admin
 from .models import Profile
 
-# PROFILE DETALLADO
 class ProfileAdmin(admin.ModelAdmin):
-    list_display =('user', 'address', 'location', 'telephone', 'user_group')
-    search_fields =('location', 'user__username', 'user__groups__name')
-    list_filter = ('user__groups', 'location')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')  # Campos disponibles en AbstractUser
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
 
-    def user_group(self, obj):
-        return " - ".join([t.name for t in obj.user.groups.all().order_by('name')])
+    def user_groups(self, obj):
+        return " - ".join([group.name for group in obj.groups.all().order_by('name')])
 
-    user_group.short_description = 'Grupo'
+    user_groups.short_description = 'Grupos'
 
 admin.site.register(Profile, ProfileAdmin)
+
+
+

@@ -1,3 +1,8 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
+
+##Insumos
+@login_required
+def insumos(request):
+    return render(request, 'insumos/insumos.html')
