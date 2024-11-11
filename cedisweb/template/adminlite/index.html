@@ -17,9 +17,12 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <!-- Datatables -->
   <link href="{% static 'DataTables/datatables.min.css' %}" rel="stylesheet">
-
-  {% block content %}{% endblock %}
-
+  <!-- Select2 --> 
+  <link href="{% static 'adminlite/plugins/select2/css/select2.min.css' %}" rel="stylesheet">
+  <link href="{% static 'adminlite/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet">
+  <!-- Sweetaler -->
+  <link href="{% static 'adminlite/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+  <link href="{% static 'adminlite/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}" rel="stylesheet">
 </head>
 
 <body class="hold-transition sidebar-mini">
@@ -207,6 +210,11 @@
   <script src="{% static 'adminlite/dist/js/adminlte.min.js' %}"></script>
   <!-- DataTable --> 
   <script src="{% static 'DataTables/datatables.min.js' %}"></script>
+  <!-- Select2 --> 
+  <script src="{% static 'adminlite/plugins/select2/js/select2.full.min.js' %}"></script>
+  <!-- Sweetaler --> 
+  <script src="{% static 'adminlite/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
 
   <script>
     function cargar_contenido(id, vista) {
