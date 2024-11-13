@@ -278,7 +278,6 @@ function registrar_usuario() {
 }
 
 //Validar campos vacíos
-
 function validarInput(usuario, contra, email) {
     Boolean(document.getElementById(usuario).value.length > 0) ? $("#" + usuario).
         removeClass("is-invalid").addClass("is-valid") : $("#" + usuario).addClass("is-invalid")
