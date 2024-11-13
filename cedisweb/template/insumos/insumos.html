@@ -1,14 +1,135 @@
+{% load static %}
+<script src="{% static 'js/insumos/insumo.js' %}"></script>
+<script>
+    listar_insumos()
+</script>
+
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0"><b>Gestión Insumos</b></h1>
+                <h1 class="m-0"><b>GESTIÓN INSUMOS</b></h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="{% url 'index' %}">Inicio</a></li>
                     <li class="breadcrumb-item active">Insumos</li>
                 </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-12">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><b>Listado de Insumos</b></h3> <button class="btn btn-danger btn-sm float-right"
+                onclick="ModalRegistroInsumo()"> <i class="fas fa-plus"> Nuevo Registro</i></button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-14 table responsive">
+                    <table id="tabla_insumo" class="display">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Codigo</th>
+                                <th>Nombre</th>
+                                <th>Stock</th>
+                                <th>Proveedor</th>
+                                <th>Descripción</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modal_registro_insumo" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Registro Insumo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="">Codigo</label>
+                        <input type="text" id="txt_cod" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label for="">Nombre</label>
+                        <input type="text" id="txt_nombre" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label for="">Stock</label>
+                        <input type="text" id="txt_stock" class="form-control"><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Proveedor</label>
+                        <select class="js-example-basic-single" name="" id="select_prov" style="width: 100%">
+                        </select>
+                    </div>
+                    <div class="col-12"><br>
+                        <label for="">Descripción</label>
+                        <input type="text" id="txt_des" class="form-control"><br>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="registrar_insumos()
+                ">Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modal_editar_insumo" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Modificar Datos de Insumos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+
+                    <div class="col-12">
+                        <label for="">Codigo</label>
+                        <input type="text" id="txt_cod_editar" class="form-control" disabled>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Nombre</label>
+                        <input type="text" id="txt_nombre_editar" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label for="">Stock</label>
+                        <input type="text" id="txt_stock_editar" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label for="">Proveedor</label>
+                        <select class="js-example-basic-single" name="" id="select_prov_editar" style="width: 100%"><br>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Descripción</label>
+                        <input type="text" id="txt_des_editar" class="form-control" rows="8"><br>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="Modificar_Insumo()
+                ">Modificar</button>
             </div>
         </div>
     </div>

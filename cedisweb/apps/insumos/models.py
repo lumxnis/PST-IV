@@ -7,6 +7,7 @@ class Productos(models.Model):
     proveedor = models.ForeignKey(Proveedores, on_delete=models.CASCADE)
     nombrep = models.CharField(max_length=20)
     cantidad = models.CharField(max_length=20)
+    descripcion = models.CharField(max_length=55)
     def __str__(self):
         texto = "{0} ({1})"
         return texto.format(self.nombrep, self.codigo)
