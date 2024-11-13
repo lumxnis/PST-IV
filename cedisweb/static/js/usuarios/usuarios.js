@@ -55,7 +55,7 @@ function listar_usuarios() {
             {
                 "data": "picture",
                 render: function (data, type, row) {
-                    return '<img class="img-responsive" style="width:40px" src="/media/' + data + '">';
+                    return '<img class="img-responsive" style="width:40px" src="/media/users/' + data + '">';
                 }
             },
             {
