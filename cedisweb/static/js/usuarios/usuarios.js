@@ -55,7 +55,7 @@ function listar_usuarios() {
             {
                 "data": "picture",
                 render: function (data, type, row) {
-                    return '<img class="img-responsive" style="width:40px" src="/media/users/' + data + '">';
+                    return '<img class="img-responsive" style="width:40px" src="/media/' + data + '">';
                 }
             },
             {
@@ -72,9 +72,9 @@ function listar_usuarios() {
                 "data": "usu_status",
                 "render": function (data, type, row) {
                     if(data=='ACTIVO'){
-                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='btn btn-success btn-sm disabled'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='desactivar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>"
+                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='btn btn-success btn-sm disabled'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='desactivar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>&nbsp;<button class='contra btn btn-secondary btn-sm'><i class='fa fa-key'></i></button>"
                     }else{
-                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='activar btn btn-success btn-sm'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='btn btn-danger btn-sm disabled'><i class='fa fa-trash'></i></button>"
+                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='activar btn btn-success btn-sm'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='btn btn-danger btn-sm disabled'><i class='fa fa-trash'></i></button>&nbsp;<button class='contra btn btn-secondary btn-sm'><i class='fa fa-key'></i></button>"
                     }
                 }
             }
@@ -237,7 +237,7 @@ function registrar_usuario() {
             "warning")
     }
 
-    let extension = foto.split('.').pop()
+    let extension = foto.split('.').pop().toLowerCase();
     let = nombrefoto = ""
     let f = new Date()
     if (foto.length > 0) {
@@ -289,6 +289,15 @@ function validarInput(usuario, contra, email) {
         removeClass("is-invalid").addClass("is-valid") : $("#" + email).addClass("is-invalid")
 }
 
+//Validar campos vacíos Contra
+function validarInputContra(contra_nueva, contra_repetir) {
+    Boolean(document.getElementById(contra_nueva).value.length > 0) ? $("#" + contra_nueva).
+        removeClass("is-invalid").addClass("is-valid") : $("#" + contra_nueva).addClass("is-invalid")
+
+    Boolean(document.getElementById(contra_repetir).value.length > 0) ? $("#" + contra_repetir).
+            removeClass("is-invalid").addClass("is-valid") : $("#" + contra_repetir).addClass("is-invalid")
+}
+
 //Validar Email
 function validarEmail(email) {
     var regex = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -301,6 +310,12 @@ function limpiar_modal_usuario() {
     document.getElementById('txt_contra').value = ""
     document.getElementById('txt_email').value = ""
     document.getElementById('txt_foto').value = ""
+}
+
+//Limpiar Campos Contra
+function limpiar_modal_contra() {
+    document.getElementById('txt_contra_nueva').value = ""
+    document.getElementById('txt_contra_repetir').value = ""
 }
 
 //Modificar Usuarios
@@ -349,6 +364,7 @@ function Modificar_Usuario() {
         });
 }
 
+//Modificar Estatus
 function Modificar_Estatus(id,estatus){
     fetch('/modificar_usuario_estatus/', {
         method: 'POST',
@@ -376,6 +392,78 @@ function Modificar_Estatus(id,estatus){
             Swal.fire("Error", 'Error: ' + error, "error");
         });
 }
+
+//Modificar Contraseña
+$('#tabla_usuario').on('click', '.contra', function () {
+    var data = tbl_usuario.row($(this).parents('tr')).data();
+
+    if (tbl_usuario.row(this).child.isShown()) {
+        data = tbl_usuario.row(this).data();
+    }
+
+    $(".form-control").removeClass("is-invalid").removeClass("is-valid")
+    $("#modal_editar_contra").modal({ backdrop: 'static', keyboard: false })
+    $("#modal_editar_contra").modal('show')
+    document.getElementById('idusuariocontra').value=data.id
+    document.getElementById('lbl_usuario_contra').innerHTML=data.username
+
+})
+
+function Modificar_Contra_Usuario() {
+    var id = document.getElementById('idusuariocontra').value;
+    var nueva_contraseña = document.getElementById('txt_contra_nueva').value;
+    var repetir_contraseña = document.getElementById('txt_contra_repetir').value;
+
+    if (id.length == 0 || nueva_contraseña.length == 0 || repetir_contraseña.length == 0) {
+        validarInputContra("txt_contra_nueva", "txt_contra_repetir")
+        return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
+    }
+
+    if (nueva_contraseña !== repetir_contraseña) {
+        Swal.fire("Error", "Las contraseñas no coinciden.", "error");
+        return;
+    }
+
+    fetch('/cambiar_contraseña/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: new URLSearchParams({
+            id: id,
+            nueva_contraseña: nueva_contraseña
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            limpiar_modal_contra();
+            Swal.fire("Contraseña Actualizada", data.message, "success")
+                .then(() => {
+                    if (data.message.includes('Redirigiendo')) {
+                        window.location.href = '/index/';
+                    } else {
+                        $('#modal_editar_contra').modal('hide');
+                        tbl_usuario.ajax.reload(); 
+                    }
+                });
+        } else {
+            Swal.fire("Error", `No se pudo cambiar la contraseña: ${data.message}`, "error");
+        }
+    })
+    .catch(error => {
+        Swal.fire("Error", 'Error: ' + error, "error");
+    });
+}
+
+
+
+
+
+
+    
+
 
 
 

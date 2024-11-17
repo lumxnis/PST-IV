@@ -1,7 +1,6 @@
 {% if request.user.is_authenticated %}
 {% load static %}
-<link href="{% static 'css/profile/profile.css' %}" rel="stylesheet">
-<script src="{% static 'js/profile/edit_profile.js' %}"></script>
+<link href="{% static 'css/profile/perfil.css' %}" rel="stylesheet">
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -16,38 +15,46 @@
             </div>
         </div>
     </div>
-    <div class="row my-row">
-        <div class="col-md-3">
-            <div class="card">
-                <img src="{{ user.picture.url }}" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <p class="card-text align-items-center">
-                        <i class="fa fa-user" aria-hidden="true"></i>
-                        <span>{{ user.username | upper }}</span>
-                    </p>
-                    <p class="card-text align-items-center">
-                        <i class="fa fa-map-marker" aria-hidden="true"></i>
-                        <span>{{ user.location }}</span>
-                    </p>
-                    <p class="card-text align-items-center">
-                        <i class="fa fa-envelope" aria-hidden="true"></i>
-                        <span>{{ user.email }}</span>
-                    </p>
-                    <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-primary">Editar Perfil</a>
-                    <a href="{% url 'exit' %}" class="btn btn-sm btn-success">Cerrar Sesión</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <h4><b><i class="fa fa-caret-right" aria-hidden="true"></i> {{ user.last_name }} {{ user.first_name }}</b></h4>
-            <div>
-                <p class="mt-3">{{ user.bio }}</p>
+</div>
+<div class="col-lg-12"">
+    <div class=" col-12 user-info">
+    <h4><b><i class="fa fa-caret-right" aria-hidden="true"></i>{% if user.last_name or user.first_name %}
+            {{ user.last_name }} {{ user.first_name }}
+            {% else %}
+            {{ user.username }} {% endif %}</b></h4>
+</div>
+</div>
+<div class="row my-row profile-container">
+    <div class="col-md-4">
+        <div class="card">
+            <img src="{{ user.picture.url }}" class="card-img-top" alt="...">
+            <div class="card-body">
+                <p class="card-text align-items-center">
+                    <i class="fa fa-user" aria-hidden="true"></i>
+                    <span>{{ user.username | upper }}</span>
+                </p>
+                <p class="card-text align-items-center">
+                    <i class="fa fa-map-marker" aria-hidden="true"></i>
+                    <span>{{ user.location }}</span>
+                </p>
+                <p class="card-text align-items-center">
+                    <i class="fa fa-envelope" aria-hidden="true"></i>
+                    <span>{{ user.email }}</span>
+                </p>
+                <br>
+                <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-primary">Editar Perfil</a>
+                <a href="{% url 'exit' %}" class="btn btn-sm btn-success">Cerrar Sesión</a>
             </div>
         </div>
     </div>
-    {% else %}
-    <h4>Título cualquiera</h4>
-    <p>{% lorem %}</p>
+    <div class="col-md-8">
+        <div class="profile-bio">
+            <h5><b>Descripción</b></h5>
+            <p class="mt-3">{{ user.bio }}</p>
+        </div>
+    </div>
 </div>
-
+{% else %}
+<h4>Título cualquiera</h4>
+<p>{% lorem %}</p>
 {% endif %}

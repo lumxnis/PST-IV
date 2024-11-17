@@ -13,6 +13,7 @@ from django.db import connection
 import os
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 
 #Inicio
@@ -29,16 +30,26 @@ def exit(request):
     return redirect('home')
 
 #Register
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+from django.conf import settings
+import os
+
+# Register
 def register(request):
     data = {
         'form': CustomUserCreationForm()
     }
 
     if request.method == 'POST':
-        user_creation_form = CustomUserCreationForm(data=request.POST)
+        user_creation_form = CustomUserCreationForm(data=request.POST, files=request.FILES)
 
         if user_creation_form.is_valid():
-            user_creation_form.save()
+            user = user_creation_form.save(commit=False)
+            if 'picture' not in request.FILES or not request.FILES['picture']:
+                user.picture = os.path.join('users', 'profile_default.png')
+            user.save()
 
             user = authenticate(username=user_creation_form.cleaned_data['username'], password=user_creation_form.cleaned_data['password1'])
             login(request, user)
@@ -65,7 +76,14 @@ def edit_profile(request):
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
+            usuario = form.save(commit=False)
+            if 'picture' in request.FILES:
+                if usuario.picture and usuario.picture.name != 'users/profile_default.png':
+                    old_picture_path = os.path.join(settings.MEDIA_ROOT, usuario.picture.name)
+                    if os.path.exists(old_picture_path):
+                        os.remove(old_picture_path)
+                usuario.picture = request.FILES['picture']
+            usuario.save()
             messages.success(request, 'Tu perfil ha sido actualizado con éxito.')
             return redirect('index')
     else:
@@ -73,13 +91,14 @@ def edit_profile(request):
 
     return render(request, 'adminlite/edit_profile.html', {'form': form})
 
+
+
 ## Usuarios
 @login_required
 def usuarios(request):
     return render (request, 'adminlite/usuarios.html')
 
 ## Listar Usuarios
-@login_required
 def listar_usuarios(request):
     if request.method == 'POST':
         draw = request.POST.get('draw')
@@ -108,6 +127,7 @@ def listar_usuarios(request):
         return JsonResponse(response)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
+
     
 
 ## Cargar Roles
@@ -140,7 +160,7 @@ def registrar_usuario(request):
             contra_encriptada = make_password(contra)
 
             if not foto:
-                nombrefoto = 'profile_default.png'
+                nombrefoto = 'users/profile_default.png'
             else:
                 with open(os.path.join('media/users', nombrefoto), 'wb+') as destination:
                     for chunk in foto.chunks():
@@ -209,11 +229,36 @@ def modificar_usuario_estatus(request):
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
+#Modificar Contra
+@csrf_exempt
+@login_required
+def cambiar_contraseña(request):
+    if request.method == 'POST':
+        try:
+            user_id = request.POST.get('id')
+            nueva_contraseña = request.POST.get('nueva_contraseña')
 
+            contra_encriptada = make_password(nueva_contraseña)
 
+            usuario = Profile.objects.get(id=user_id)
+            usuario.password = contra_encriptada
+            usuario.save()
 
-
-
+            if request.user.id == usuario.id:
+                user = authenticate(username=usuario.username, password=nueva_contraseña)
+                if user is not None:
+                    login(request, user)
+                    return JsonResponse({'status': 'success', 'message': 'Contraseña actualizada correctamente. Redirigiendo...'}, status=200)
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'No se pudo re-autenticar al usuario.'})
+            else:
+                return JsonResponse({'status': 'success', 'message': 'Contraseña actualizada correctamente.'})
+        except Profile.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Usuario no encontrado.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
 
 
 

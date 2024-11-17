@@ -30,4 +30,6 @@ urlpatterns = [
     path('registrar_usuario/', views.registrar_usuario, name='registrar_usuario'),
     path('modificar_usuario/',views.modificar_usuario, name='modificar_usuario'),
     path('modificar_usuario_estatus/', views.modificar_usuario_estatus, name='modificar_usuario_estatus'),
+    path('cambiar_contraseña/', views.cambiar_contraseña, name='cambiar_contraseña')
+
 ]
