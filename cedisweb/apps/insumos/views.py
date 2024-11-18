@@ -7,8 +7,6 @@ from .models import Productos
 from django.db.models import Q
 from .models import Proveedores
 
-
-
 ##Insumos
 @login_required
 def insumos(request):
@@ -19,46 +17,68 @@ def insumos(request):
 @csrf_exempt
 def listar_insumos(request):
     if request.method == 'POST':
-        draw = int(request.POST.get('draw', 1))
-        start = int(request.POST.get('start', 0))
-        length = int(request.POST.get('length', 10))
-        search_value = request.POST.get('search[value]', '')
+        try:
+            draw = int(request.POST.get('draw', 1))
+            start = int(request.POST.get('start', 0))
+            length = int(request.POST.get('length', 10))
+            search_value = request.POST.get('search[value]', '')
 
-        insumos = Productos.objects.all()
-        if search_value:
-            insumos = insumos.filter(
-                Q(codigo__icontains=search_value) |
-                Q(nombrep__icontains=search_value) |
-                Q(descripcion__icontains=search_value) |
-                Q(proveedor__nombre_prov__icontains=search_value) |
-                Q(proveedor__apellido_prov__icontains=search_value)
-            )
-
-        paginator = Paginator(insumos, length)
-        page_number = (start // length) + 1
-        page_obj = paginator.get_page(page_number)
-
-        data = [
-            {
-                "codigo": insumo.codigo,
-                "nombrep": insumo.nombrep,
-                "cantidad": insumo.cantidad,
-                "nombre_prov": insumo.proveedor.nombre_prov + ' ' + insumo.proveedor.apellido_prov,
-                "descripcion": insumo.descripcion
+            column_map = {
+                0: 'codigo',
+                1: 'nombrep',
+                2: 'cantidad',
+                3: 'proveedor__nombre_prov',
+                4: 'descripcion'
             }
-            for insumo in page_obj
-        ]
 
-        response = {
-            "draw": draw,
-            "recordsTotal": paginator.count,
-            "recordsFiltered": paginator.count,
-            "data": data
-        }
+            order_column_index = int(request.POST.get('order[0][column]', 0))
+            order_column = column_map.get(order_column_index, 'codigo')
+            order_direction = request.POST.get('order[0][dir]', 'asc')
 
-        return JsonResponse(response)
-    return JsonResponse({"error": "Método no permitido"}, status=405)
+            insumos = Productos.objects.all()
+            if search_value:
+                insumos = insumos.filter(
+                    Q(codigo__icontains=search_value) |
+                    Q(nombrep__icontains=search_value) |
+                    Q(descripcion__icontains=search_value) |
+                    Q(proveedor__nombre_prov__icontains=search_value) |
+                    Q(proveedor__apellido_prov__icontains=search_value)
+                )
 
+            # Ordenar los datos
+            if order_direction == 'asc':
+                insumos = insumos.order_by(order_column)
+            else:
+                insumos = insumos.order_by(f'-{order_column}')
+
+            paginator = Paginator(insumos, length)
+            page_number = (start // length) + 1
+            page_obj = paginator.get_page(page_number)
+
+            data = [
+                {
+                    "codigo": insumo.codigo,
+                    "nombrep": insumo.nombrep,
+                    "cantidad": insumo.cantidad,
+                    "nombre_prov": f"{insumo.proveedor.nombre_prov} {insumo.proveedor.apellido_prov}",
+                    "descripcion": insumo.descripcion
+                }
+                for insumo in page_obj
+            ]
+
+            response = {
+                "draw": draw,
+                "recordsTotal": paginator.count,
+                "recordsFiltered": paginator.count,
+                "data": data
+            }
+
+            return JsonResponse(response)
+        except Exception as e:
+            print("Error: ", str(e))
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 ## Cargar Proveedores

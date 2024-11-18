@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <!-- Datatables -->
   <link href="{% static 'DataTables/datatables.min.css' %}" rel="stylesheet">
-  <!-- Select2 --> 
+  <!-- Select2 -->
   <link href="{% static 'adminlite/plugins/select2/css/select2.min.css' %}" rel="stylesheet">
   <link href="{% static 'adminlite/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet">
   <!-- Sweetaler -->
@@ -102,36 +102,80 @@
             <!-- Add icons to the links using the .nav-icon class with font-awesome or any other icon font library -->
             <li class="nav-item">
               <a href="{% url 'index' %}" class="nav-link active">
-                  <i class="fa fa-home" aria-hidden="true" style="margin-right: 8px;"></i>
-                  <p>Inicio <span class="right fas fa-angle-left"></span></p>
+                <i class="fa fa-home" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Inicio <span class="right fas fa-angle-left"></span></p>
               </a>
-            </li>          
+            </li>
+            <br>
+           <b><li class="nav-header">PRINCIPAL</li></b>
             <li class="nav-item">
               <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'pacientes' %}')">
                 <i class="fa fa-plus-square" aria-hidden="true" style="margin-right: 8px;"></i>
-                <p>Pacientes <span class="right badge badge-danger">New</span></p>
+                <p>Pacientes</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'medico' %}')">
+                <i class="fa fa-user-md" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Medico</p>
+              </a>
+            </li>
+            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
+              'contenido_principal', '{% url 'insumos' %}')"><i class="fa fa-medkit" aria-hidden="true"
+                  style="margin-right: 8px;"></i>
+                <p>Insumos</p>
+              </a>
+            </li>
+            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
+              'contenido_principal', '{% url 'proveedores' %}')"><i class="fa fa-briefcase" aria-hidden="true"
+                  style="margin-right: 8px;"></i>
+                <p>Proveedores</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'realizar_examenes' %}')">
+                <i class="fa fa-hospital" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Realizar Examenes</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'resultados_examenes' %}')">
+                <i class="fa fa-medkit" aria-hidden="true"  style="margin-right: 8px;"></i>
+                <p>Resultados de Examen</p>
+              </a>
+            </li>
+            <br>
+            <b><li class="nav-header">CONFIGURACIÓN</li></b>
+            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
+                'contenido_principal', '{% url 'usuarios' %}')"><i class="fa fa-users" aria-hidden="true"
+                  style="margin-right: 8px;"></i>
+                <p>Usuarios<span class="right badge badge-danger">New</span></p>
+              </a>
+            </li>
+            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
+              'contenido_principal', '{% url 'roles' %}')"><i class="fa fa-cogs" aria-hidden="true"
+                  style="margin-right: 8px;"></i>
+                <p>Roles<span class="right badge badge-danger">New</span></p>
               </a>
             </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
               'contenido_principal', '{% url 'examenes' %}')"><i class="fa fa-stethoscope" aria-hidden="true"
                   style="margin-right: 8px;"></i>
                 <p>Exámenes<span class="right badge badge-danger">New</span></p>
-              </a></li>
+              </a>
+            </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
-              'contenido_principal', '{% url 'insumos' %}')"><i class="fa fa-medkit" aria-hidden="true"
+              'contenido_principal', '{% url 'analisis' %}')"><i class="fa fa-tint" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Insumos<span class="right badge badge-danger">New</span></p>
-              </a></li>
+                <p>Análisis<span class="right badge badge-danger">New</span></p>
+              </a>
+            </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
-              'contenido_principal', '{% url 'proveedores' %}')"><i class="fa fa-briefcase" aria-hidden="true"
+              'contenido_principal', '{% url 'especialidad' %}')"><i class="fa fa-graduation-cap" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Proveedores<span class="right badge badge-danger">New</span></p>
-              </a></li>
-            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
-                'contenido_principal', '{% url 'usuarios' %}')"><i class="fa fa-users" aria-hidden="true"
-                  style="margin-right: 8px;"></i>
-                <p>Usuarios<span class="right badge badge-danger">New</span></p>
-              </a></li>
+                <p>Especialidad<span class="right badge badge-danger">New</span></p>
+              </a>
+            </li>
           </ul>
         </nav>
         <!-- /.sidebar-menu -->
@@ -208,11 +252,11 @@
   <script src="{% static 'adminlite/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <!-- AdminLTE App -->
   <script src="{% static 'adminlite/dist/js/adminlte.min.js' %}"></script>
-  <!-- DataTable --> 
+  <!-- DataTable -->
   <script src="{% static 'DataTables/datatables.min.js' %}"></script>
-  <!-- Select2 --> 
+  <!-- Select2 -->
   <script src="{% static 'adminlite/plugins/select2/js/select2.full.min.js' %}"></script>
-  <!-- Sweetaler --> 
+  <!-- Sweetaler -->
   <script src="{% static 'adminlite/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
 
 
@@ -221,16 +265,16 @@
       $("#" + id).load(vista);
     }
 
-    $(function(){
-        var menues = $(".nav-link")
-        menues.click(function(){
-          menues.removeClass("active")
-          $(this).addClass("active")
-        })
+    $(function () {
+      var menues = $(".nav-link")
+      menues.click(function () {
+        menues.removeClass("active")
+        $(this).addClass("active")
+      })
     })
   </script>
 
-  
+
 
 
 </body>

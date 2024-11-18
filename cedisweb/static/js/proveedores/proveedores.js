@@ -55,7 +55,7 @@ function listar_proveedores() {
         "ajax": {
             "url": "/listar_proveedores/",
             "type": 'POST',
-            "headers": { "X-CSRFToken": csrftoken },
+            "headers": { "X-CSRFToken": getCookie('csrftoken') },
             "dataSrc": "data"
         },
         "columns": [
@@ -95,6 +95,7 @@ function listar_proveedores() {
         },
         select: true
     });
+
     tbl_prov.on('draw.dt', function () {
         var PageInfo = $("#tabla_proveedor").DataTable().page.info();
         tbl_prov.column(0, { page: 'current' }).nodes().each(function (cell, i) {
@@ -231,82 +232,50 @@ function registrar_prov() {
 
 //Actualizar Proveedor
 function modificar_prov() {
-    let cedulaElem = document.getElementById('txt_cedula_editar');
-    let rifElem = document.getElementById('txt_rif_editar');
-    let nombreElem = document.getElementById('txt_nombre_editar');
-    let apellidoElem = document.getElementById('txt_apellido_editar');
-    let direccionElem = document.getElementById('txt_dir_editar');
-    let telefonoElem = document.getElementById('txt_tlf_editar');
-    let emailElem = document.getElementById('txt_correo_editar');
+    let ci = document.getElementById('txt_cedula_editar').value;
+    let rif = document.getElementById('txt_rif_editar').value;
+    let nombre_prov = document.getElementById('txt_nombre_editar').value;
+    let apellido_prov = document.getElementById('txt_apellido_editar').value;
+    let direccion_prov = document.getElementById('txt_dir_editar').value;
+    let telefono_prov = document.getElementById('txt_tlf_editar').value;
+    let email_prov = document.getElementById('txt_correo_editar').value;
 
-    if (!cedulaElem || !rifElem || !nombreElem || !apellidoElem || !direccionElem || !telefonoElem || !emailElem) {
-        return Swal.fire("Error", "No se encontraron algunos campos del formulario.", "error");
-    }
+    if (validarInput('txt_cedula_editar', 'txt_rif_editar', 'txt_nombre_editar', 'txt_apellido_editar', 'txt_dir_editar', 'txt_tlf_editar', 'txt_correo_editar')) {
+        let formData = new URLSearchParams();
+        formData.append('cedula', ci);
+        formData.append('rif', rif);
+        formData.append('nombre', nombre_prov);
+        formData.append('apellido', apellido_prov);
+        formData.append('direccion', direccion_prov);
+        formData.append('telefono', telefono_prov);
+        formData.append('email', email_prov);
 
-    let cedula = cedulaElem.value;
-    let rif = rifElem.value;
-    let nombre = nombreElem.value;
-    let apellido = apellidoElem.value;
-    let direccion = direccionElem.value;
-    let telefono = telefonoElem.value;
-    let email = emailElem.value;
-
-    if (cedula.length == 0 || rif.length == 0 || nombre.length == 0 || apellido.length == 0 || direccion.length == 0 || telefono.length == 0 || email.length == 0) {
-        validarInput("txt_cedula_editar", "txt_rif_editar", "txt_nombre_editar", "txt_apellido_editar", "txt_dir_editar", "txt_tlf_editar", "txt_correo_editar");
-        return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
-    }
-
-    let cedulaResult = validarCedula(cedula);
-    if (!cedulaResult.valido) {
-        return Swal.fire("Mensaje de Advertencia", cedulaResult.mensaje, "warning");
-    }
-
-    let rifResult = validarRIF(rif);
-    if (!rifResult.valido) {
-        return Swal.fire("Mensaje de Advertencia", rifResult.mensaje, "warning");
-    }
-
-    let telefonoResult = validarTelefono(telefono);
-    if (!telefonoResult.valido) {
-        return Swal.fire("Mensaje de Advertencia", telefonoResult.mensaje, "warning");
-    }
-
-    let emailResult = validarEmail(email);
-    if (!emailResult.valido) {
-        return Swal.fire("Mensaje de Advertencia", emailResult.mensaje, "warning");
-    }
-
-    fetch('/modificar_prov/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: new URLSearchParams({
-            cedula: cedula,
-            rif: rif,
-            nombre: nombre,
-            apellido: apellido,
-            direccion: direccion,
-            telefono: telefono,
-            email: email
+        fetch('/modificar_prov/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
-                $("#modal_editar_prov").modal('hide');
-                tbl_prov.ajax.reload();
-            });
-        } else {
-            Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
-        }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
+                    $("#modal_editar_prov").modal('hide');
+                    tbl_prov.ajax.reload();
+                });
+            } else {
+                Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            Swal.fire("Error", 'Error: ' + error, "error");
+        });
+    }
+    return false;
 }
+
 
 //ELIMINAR PROVEEDOR
 $('#tabla_proveedor').on('click', '.eliminar', function () {

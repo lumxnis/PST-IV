@@ -14,6 +14,8 @@ import os
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from datetime import datetime
+import json
 
 
 #Inicio
@@ -92,43 +94,65 @@ def edit_profile(request):
     return render(request, 'adminlite/edit_profile.html', {'form': form})
 
 
-
 ## Usuarios
 @login_required
 def usuarios(request):
     return render (request, 'adminlite/usuarios.html')
 
 ## Listar Usuarios
+@login_required
+@csrf_exempt
 def listar_usuarios(request):
     if request.method == 'POST':
-        draw = request.POST.get('draw')
-        start = int(request.POST.get('start', 0))
-        length = int(request.POST.get('length', 10))
-        search_value = request.POST.get('search[value]')
+        try:
+            draw = request.POST.get('draw')
+            start = int(request.POST.get('start', 0))
+            length = int(request.POST.get('length', 10))
+            search_value = request.POST.get('search[value]')
 
-        usuarios = Profile.objects.select_related('rol').order_by('-date_joined')
-        if search_value:
-            usuarios = usuarios.filter(
-                Q(username__icontains=search_value) | Q(email__icontains=search_value)
-            )
-        
-        usuarios = usuarios.annotate(rol_nombre=F('rol__rol_nombre'))
+            column_map = {
+                0: 'username',
+                1: 'email',
+                2: 'usu_status',
+                3: 'rol__rol_nombre',
+                4: 'picture'
+            }
 
-        paginator = Paginator(usuarios, length)
-        page = paginator.get_page(start // length + 1)
-        data = list(page.object_list.values('id', 'username', 'email', 'usu_status', 'rol_nombre', 'picture'))
+            order_column_index = int(request.POST.get('order[0][column]', 0))
+            order_column = column_map.get(order_column_index, 'username')
+            order_direction = request.POST.get('order[0][dir]', 'asc')
 
-        response = {
-            'draw': draw,
-            'recordsTotal': usuarios.count(),
-            'recordsFiltered': usuarios.count(),
-            'data': data,
-        }
-        return JsonResponse(response)
+            usuarios = Profile.objects.select_related('rol')
+            if search_value:
+                usuarios = usuarios.filter(
+                    Q(username__icontains=search_value) | Q(email__icontains=search_value)
+                )
+
+            if order_direction == 'asc':
+                usuarios = usuarios.order_by(order_column)
+            else:
+                usuarios = usuarios.order_by(f'-{order_column}')
+
+            usuarios = usuarios.annotate(rol_nombre=F('rol__rol_nombre'))
+
+            paginator = Paginator(usuarios, length)
+            page = paginator.get_page(start // length + 1)
+            data = list(page.object_list.values('id', 'username', 'email', 'usu_status', 'rol_nombre', 'picture'))
+
+            response = {
+                'draw': draw,
+                'recordsTotal': usuarios.count(),
+                'recordsFiltered': usuarios.count(),
+                'data': data,
+            }
+
+            return JsonResponse(response)
+        except Exception as e:
+            print("Error: ", str(e))
+            return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-    
 
 ## Cargar Roles
 @login_required
@@ -259,6 +283,113 @@ def cambiar_contraseña(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     else:
         return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
+    
+
+## Roles
+@login_required
+def roles(request):
+    return render (request, 'adminlite/rol.html')
+
+## Listar Roles
+@login_required
+@csrf_exempt
+def listar_roles(request):
+    if request.method == 'POST':
+        try:
+            roles = Rol.objects.all()
+            roles_data = []
+            for rol in roles:
+                roles_data.append({
+                    'rol_id': rol.rol_id,
+                    'rol': rol.rol_nombre,
+                    'fecha_registro': rol.rol_fregistro.strftime('%Y-%m-%d') if rol.rol_fregistro else '',
+                    'estatus': rol.rol_estatus
+                })
+            return JsonResponse({'data': roles_data}, safe=False)
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+    else:
+        return JsonResponse({'error': 'Método de solicitud no permitido.'})
+    
+
+## Registrar Rol
+@login_required
+@csrf_exempt
+def registrar_rol(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rol_nombre = data.get('rol_nombre')
+
+            if not rol_nombre:
+                return JsonResponse({'status': 'error', 'message': 'El nombre del rol es obligatorio.'})
+
+            
+            if Rol.objects.filter(rol_nombre__iexact=rol_nombre).exists():
+                return JsonResponse({'status': 'error', 'message': 'El rol ya existe.'})
+
+            nuevo_rol = Rol(
+                rol_nombre=rol_nombre,
+                rol_fregistro=datetime.now(),
+                rol_estatus='ACTIVO'  
+            )
+            nuevo_rol.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Rol registrado correctamente.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
+
+
+## Obtener Estatus
+@login_required
+@csrf_exempt
+def obtener_estatus(request):
+    if request.method == 'GET':
+        try:
+            estatus_choices = Rol.ROL_ESTATUS_CHOICES
+            estatus_data = [{'value': choice[0], 'text': choice[1]} for choice in estatus_choices]
+
+            return JsonResponse({'status': 'success', 'data': estatus_data})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
+    
+
+## Modificar ROl
+@login_required
+@csrf_exempt
+def modificar_rol(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rol_id = data.get('rol_id')
+            rol_nombre = data.get('rol_nombre')
+            rol_estatus = data.get('rol_estatus')
+
+            if not rol_id or not rol_nombre or not rol_estatus:
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+
+            if Rol.objects.filter(rol_nombre__iexact=rol_nombre).exclude(rol_id=rol_id).exists():
+                return JsonResponse({'status': 'error', 'message': 'El rol ya existe.'})
+
+            rol = Rol.objects.get(rol_id=rol_id)
+            rol.rol_nombre = rol_nombre
+            rol.rol_estatus = rol_estatus
+            rol.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Rol modificado correctamente.'})
+        except Rol.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'El rol no existe.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
+
+
+
 
 
 

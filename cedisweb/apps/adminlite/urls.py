@@ -30,6 +30,13 @@ urlpatterns = [
     path('registrar_usuario/', views.registrar_usuario, name='registrar_usuario'),
     path('modificar_usuario/',views.modificar_usuario, name='modificar_usuario'),
     path('modificar_usuario_estatus/', views.modificar_usuario_estatus, name='modificar_usuario_estatus'),
-    path('cambiar_contraseña/', views.cambiar_contraseña, name='cambiar_contraseña')
+    path('cambiar_contraseña/', views.cambiar_contraseña, name='cambiar_contraseña'),
+
+    ## Roles
+    path('roles/', views.roles, name='roles'),
+    path('listar_roles/', views.listar_roles, name='listar_roles'),
+    path('registrar_rol/', views.registrar_rol, name='registrar_rol'),
+    path('obtener_estatus/', views.obtener_estatus, name='obtener_estatus'),
+    path('modificar_rol/', views.modificar_rol, name='modificar_rol'),
 
 ]

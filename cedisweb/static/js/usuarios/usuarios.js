@@ -44,7 +44,7 @@ function listar_usuarios() {
         "ajax": {
             "url": "/listar_usuarios/",
             "type": 'POST',
-            "headers": { "X-CSRFToken": csrftoken },
+            "headers": { "X-CSRFToken": getCookie('csrftoken') },
             "dataSrc": "data"
         },
         "columns": [
@@ -112,6 +112,7 @@ function listar_usuarios() {
         });
     });
 }
+
 
 //Modal Editar Usuario
 $(document).ready(function () {

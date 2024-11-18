@@ -43,7 +43,7 @@ function listar_insumos() {
         "ajax": {
             "url": "/listar_insumos/",
             "type": 'POST',
-            "headers": { "X-CSRFToken": csrftoken },
+            "headers": { "X-CSRFToken": getCookie('csrftoken') },
             "dataSrc": "data"
         },
         "columns": [
@@ -81,6 +81,7 @@ function listar_insumos() {
         },
         select: true
     });
+
     tbl_insumo.on('draw.dt', function () {
         var PageInfo = $("#tabla_insumo").DataTable().page.info();
         tbl_insumo.column(0, { page: 'current' }).nodes().each(function (cell, i) {
@@ -88,6 +89,7 @@ function listar_insumos() {
         });
     });
 }
+
 
 // CARGAR PROVEEDORES EN SELECT
 function cargar_select_provs(selectElementId) {
