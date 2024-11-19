@@ -1,8 +1,14 @@
+{% load static %}
+<script src="{% static 'js/examenes/examenes.js' %}"></script>
+<script>
+    listar_examenes()
+</script>
+
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0"><b>Gestión Examenes</b></h1>
+                <h1 class="m-0"><b>GESTIÓN EXAMENES</b></h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -13,3 +19,105 @@
         </div>
     </div>
 </div>
+<div class="col-lg-12">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><b>Listado de Examenes</b></h3> <button class="btn btn-danger btn-sm float-right"
+                onclick="ModalRegistroExamenes()"> <i class="fas fa-plus"> Nuevo Registro</i></button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-14 table responsive">
+                    <table id="tabla_examenes" class="display">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Análisis</th>
+                                <th>Examen</th>
+                                <th>Fecha de Registro</th>
+                                <th>Estatus</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registro Rol -->
+<div class="modal fade" id="modal_registro_examen" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Registro Examen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="">Examen</label>
+                        <input type="text" id="txt_examen" class="form-control"><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Análisis</label>
+                        <select class="js-example-basic-single" name="" id="select_analisis" style="width: 100%">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="registrar_examen()
+                ">Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal-->
+
+<!-- Modal Editar Rol -->
+<div class="modal fade" id="modal_editar_examen" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Modificar Examen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+
+                    <div class="col-12">
+                        <label for="">ID</label>
+                        <input type="text" id="txt_idexamen_editar" class="form-control" disabled><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Examen</label>
+                        <input type="text" id="txt_examen_editar" class="form-control"><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Análisis</label>
+                        <select class="js-example-basic-single" name="" id="select_analisis_editar" style="width: 100%">
+                        </select><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Estatus</label>
+                        <select class="js-example-basic-single" name="" id="select_estatus_editar" style="width: 100%">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="modificar_examen()
+                ">Modificar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal-->

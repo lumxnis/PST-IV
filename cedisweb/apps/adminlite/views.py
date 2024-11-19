@@ -319,7 +319,7 @@ def registrar_rol(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            rol_nombre = data.get('rol_nombre')
+            rol_nombre = data.get('rol_nombre').strip().upper()
 
             if not rol_nombre:
                 return JsonResponse({'status': 'error', 'message': 'El nombre del rol es obligatorio.'})
