@@ -23,7 +23,6 @@ class Rol(models.Model):
 
 ## Usuarios
 class Profile(AbstractUser):
-
     USUARIO_ESTATUS_CHOICES = [ ('ACTIVO', 'Activo'), ('INACTIVO', 'Inactivo'), ]
     picture = models.ImageField(default='profile_default.png', upload_to='users/')
     location = models.CharField(max_length=60, null=True, blank=True)

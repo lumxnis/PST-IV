@@ -2,7 +2,7 @@
 function ModalRegistroAnalisis() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     $("#modal_registro_analisis").modal({ backdrop: 'static', keyboard: false });
-    $("#modal_registro_analisis").modal('show'); 
+    $("#modal_registro_analisis").modal('show');
 }
 
 // INICIALIZAR SELECT
@@ -55,7 +55,7 @@ function listar_analisis() {
             {
                 "data": null,
                 "render": function (data, type, row) {
-                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>" 
+                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>"
                 }
             }
         ],
@@ -100,7 +100,7 @@ function validarInput(analisis_nombre) {
     Boolean(document.getElementById(analisis_nombre).value.length > 0) ? $("#" + analisis_nombre).
         removeClass("is-invalid").addClass("is-valid") : $("#" + analisis_nombre).addClass("is-invalid")
 }
-    
+
 
 //Registrar ANÁLISIS
 function registrar_analisis() {
@@ -120,28 +120,28 @@ function registrar_analisis() {
         },
         body: JSON.stringify({ analisis_nombre: analisis_nombre })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            limpiar_modal_analisis()
-            Swal.fire("Registro Exitoso", data.message, "success")
-                .then(() => {
-                    $('#modal_registro_analisis').modal('hide');
-                    tbl_analisis.ajax.reload();
-                });
-        } else {
-            Swal.fire("Error", `No se pudo registrar el Análisis: ${data.message}`, "error");
-        }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                limpiar_modal_analisis()
+                Swal.fire("Registro Exitoso", data.message, "success")
+                    .then(() => {
+                        $('#modal_registro_analisis').modal('hide');
+                        tbl_analisis.ajax.reload();
+                    });
+            } else {
+                Swal.fire("Error", `No se pudo registrar el Análisis: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            Swal.fire("Error", 'Error: ' + error, "error");
+        });
 }
 
 //Modificar ANÁLISIS
 function cargarEstatusSelect(estatusActual) {
     var select = $("#select_estatus_editar");
-    select.empty(); 
+    select.empty();
 
     fetch('/obtener_estatus_analisis/', {
         method: 'GET',
@@ -149,20 +149,20 @@ function cargarEstatusSelect(estatusActual) {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            var estatusOptions = data.data;
-            estatusOptions.forEach(function(option) {
-                select.append(new Option(option.text, option.value));
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                var estatusOptions = data.data;
+                estatusOptions.forEach(function (option) {
+                    select.append(new Option(option.text, option.value));
+                });
 
-            select.val(estatusActual).trigger('change');
-        } else {
-            console.error("Error al obtener estatus: ", data.message);
-        }
-    })
-    .catch(error => console.error('Error:', error));
+                select.val(estatusActual).trigger('change');
+            } else {
+                console.error("Error al obtener estatus: ", data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 $('#tabla_analisis').on('click', '.editar', function () {
@@ -202,21 +202,21 @@ function modificar_analisis() {
         },
         body: JSON.stringify({ analisis_id: analisis_id, analisis_nombre: analisis_nombre, analisis_estatus: analisis_estatus })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            Swal.fire("Modificación Exitosa", data.message, "success")
-                .then(() => {
-                    $('#modal_editar_analisis').modal('hide');
-                    tbl_analisis.ajax.reload(); 
-                });
-        } else {
-            Swal.fire("Error", `No se pudo modificar el análisis: ${data.message}`, "error");
-        }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire("Modificación Exitosa", data.message, "success")
+                    .then(() => {
+                        $('#modal_editar_analisis').modal('hide');
+                        tbl_analisis.ajax.reload();
+                    });
+            } else {
+                Swal.fire("Error", `No se pudo modificar el análisis: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            Swal.fire("Error", 'Error: ' + error, "error");
+        });
 }
 
 

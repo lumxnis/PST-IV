@@ -79,20 +79,22 @@ def edit_profile(request):
         form = ProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             usuario = form.save(commit=False)
+            
             if 'picture' in request.FILES:
                 if usuario.picture and usuario.picture.name != 'users/profile_default.png':
                     old_picture_path = os.path.join(settings.MEDIA_ROOT, usuario.picture.name)
                     if os.path.exists(old_picture_path):
                         os.remove(old_picture_path)
+                
                 usuario.picture = request.FILES['picture']
+            
             usuario.save()
             messages.success(request, 'Tu perfil ha sido actualizado con éxito.')
             return redirect('index')
     else:
         form = ProfileForm(instance=request.user)
-
+    
     return render(request, 'adminlite/edit_profile.html', {'form': form})
-
 
 ## Usuarios
 @login_required
