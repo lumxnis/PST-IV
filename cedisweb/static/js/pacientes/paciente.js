@@ -6,6 +6,12 @@ function ModalRegistroPaciente() {
     $("#modal_registro_paciente").modal('show');
 }
 
+$('#modal_registro_paciente').on('hidden.bs.modal', function () {
+    document.getElementById('div_mensaje_error').innerHTML = '';
+    $(".form-control").removeClass("is-invalid").removeClass("is-valid");
+});
+
+
 //CARGAR OPCIONES
 function cargarOpcionesSelect(selectorId, opciones) {
     var select = $("#" + selectorId);
@@ -129,7 +135,7 @@ function limpiar_modal_paciente() {
     document.getElementById('txt_fecha_nacimiento').value = "";
 }
 
-//VALIDACIONES
+// VALIDACIONES
 function validarCedula(ci) {
     const regex = /^\d{8,10}$/;
     return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 8 y 10 dígitos numéricos." };
@@ -156,6 +162,7 @@ function validarApellido(valor) {
 
 function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, mensajeErrorId) {
     let camposVacios = false;
+    const mensajeErrorDiv = document.getElementById(mensajeErrorId);
 
     const validarCampoYAgregarClase = (campoId, validarFn) => {
         const campo = document.getElementById(campoId);
@@ -183,16 +190,18 @@ function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, mensajeE
     validarCampoYAgregarClase(fechaNacimiento, validarFecha);
 
     if (camposVacios) {
-        document.getElementById(mensajeErrorId).innerHTML = '<br>' +
-            '<div class="alert alert-danger alert-dismissible">' +
-            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-            '<h5><i class="icon fas fa-ban"></i> Todos los campos son obligatorios.</h5></div>';
+        if (mensajeErrorDiv) {
+            mensajeErrorDiv.innerHTML = '<br>' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                '<h5><i class="icon fas fa-ban"></i> Todos los campos son obligatorios.</h5></div>';
+        }
         return false;
     }
 
     return true;
 }
-//VALIDACIONES
+// VALIDACIONES
 
 //Registrar Paciente
 function registrar_paciente() {

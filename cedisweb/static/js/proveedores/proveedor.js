@@ -4,6 +4,10 @@ function ModalRegistroProveedores() {
     $("#modal_registro_prov").modal({ backdrop: 'static', keyboard: false });
     $("#modal_registro_prov").modal('show'); 
 }
+$('#modal_registro_prov').on('hidden.bs.modal', function () { 
+    document.getElementById('div_mensaje_error').innerHTML = ''; 
+});
+
 
 ////Modal Editar Proveedor
 $('#tabla_proveedor').on('click', '.editar', function () {
