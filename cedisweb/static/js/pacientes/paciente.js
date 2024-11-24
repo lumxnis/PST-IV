@@ -131,48 +131,66 @@ function limpiar_modal_paciente() {
 
 //VALIDACIONES
 function validarCedula(ci) {
-    if (ci.length === 0) {
-        return { valido: false, mensaje: "El campo de la cédula es obligatorio." };
-    }
     const regex = /^\d{8,10}$/;
     return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 8 y 10 dígitos numéricos." };
 }
 
 function validarTelefono(tlf) {
-    if (tlf.length === 0) {
-        return { valido: false, mensaje: "El campo del teléfono es obligatorio." };
-    }
     const regex = /^\+58\d{10}$/;
     return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
 }
 
-
 function validarFecha(fecha) {
-    if (fecha.length === 0) {
-        return { valido: false, mensaje: "El campo de la fecha de nacimiento es obligatorio." };
-    }
-    return { valido: true, mensaje: "" };
+    return { valido: fecha.length > 0, mensaje: "El campo de la fecha de nacimiento es obligatorio." };
 }
 
-function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento) {
+function validarNombre(valor) {
+    const regex = /^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$/;
+    return { valido: regex.test(valor), mensaje: "El campo Nombre solo debe contener letras." };
+}
+
+function validarApellido(valor) {
+    const regex = /^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$/;
+    return { valido: regex.test(valor), mensaje: "El campo Apellido solo debe contener letras." };
+}
+
+function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, mensajeErrorId) {
+    let camposVacios = false;
+
     const validarCampoYAgregarClase = (campoId, validarFn) => {
         const campo = document.getElementById(campoId);
         if (campo) {
-            const resultado = validarFn(campo.value.trim());
-            if (!resultado.valido) {
+            const valor = campo.value.trim();
+            if (valor.length === 0) {
+                camposVacios = true;
                 $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
             } else {
-                $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+                const resultado = validarFn(valor);
+                if (!resultado.valido) {
+                    $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+                } else {
+                    $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+                }
             }
         }
     };
 
     validarCampoYAgregarClase(ci, validarCedula);
-    validarCampoYAgregarClase(nombre, valor => ({ valido: valor.length > 0 }));
-    validarCampoYAgregarClase(apepat, valor => ({ valido: valor.length > 0 }));
-    validarCampoYAgregarClase(apemat, valor => ({ valido: valor.length > 0 }));
+    validarCampoYAgregarClase(nombre, validarNombre);
+    validarCampoYAgregarClase(apepat, validarApellido);
+    validarCampoYAgregarClase(apemat, validarApellido);
     validarCampoYAgregarClase(tlf, validarTelefono);
     validarCampoYAgregarClase(fechaNacimiento, validarFecha);
+
+    if (camposVacios) {
+        document.getElementById(mensajeErrorId).innerHTML = '<br>' +
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+            '<h5><i class="icon fas fa-ban"></i> Todos los campos son obligatorios.</h5></div>';
+        return false;
+    }
+
+    return true;
 }
 //VALIDACIONES
 

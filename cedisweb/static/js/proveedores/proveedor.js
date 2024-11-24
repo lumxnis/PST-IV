@@ -24,7 +24,12 @@ $('#tabla_proveedor').on('click', '.editar', function () {
     $('#modal_editar_prov').modal('show');
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     $("#modal_editar_prov").modal({ backdrop: 'static', keyboard: false });
-});
+
+    $('#modal_editar_prov').on('hidden.bs.modal', function () { 
+        document.getElementById('div_mensaje_error_editar').innerHTML = ''; 
+    });
+})
+
 
 
 //LISTAR Proveedores
