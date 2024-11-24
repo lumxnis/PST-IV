@@ -1,5 +1,5 @@
 {% load static %}
-<script src="{% static 'js/proveedores/proveedores.js' %}"></script>
+<script src="{% static 'js/proveedores/proveedor.js' %}"></script>
 <script>
     listar_proveedores()
 </script>
@@ -51,7 +51,7 @@
 
 <!-- Modal Registro -->
 <div class="modal fade" id="modal_registro_prov" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel"> Registro Proveedor</h5>
@@ -61,36 +61,38 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-12">
+                    <div class="col-6">
                         <label for="">C.I</label>
                         <input type="text" id="txt_cedula" placeholder="Ingresar Cédula"  class="form-control"><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-6">
                         <label for="">RIF</label>
                         <input type="text" id="txt_rif" placeholder="Ingresar Rif" class="form-control"><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-6">
                         <label for="">Nombre</label>
                         <input type="text" id="txt_nombre" placeholder="Ingresar Nombre"  class="form-control"><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-6">
                         <label for="">Apellido</label>
                         <input type="text" id="txt_apellido" placeholder="Ingresar Apellido" class="form-control"><br>
                         </select>
                     </div>
-                    <div class="col-12">
+                    <div class="col-4">
                         <label for="">Dirección</label>
                         <input type="text" id="txt_dir" placeholder="Ingresar dirección del proveedor" class="form-control"><br>
                         </select>
                     </div>
-                    <div class="col-12">
+                    <div class="col-4">
                         <label for="">Teléfono</label>
                         <input type="text" id="txt_tlf" placeholder="Ingresar teléfono del proveedor" class="form-control"><br>
                         </select>
                     </div>
-                    <div class="col-12">
+                    <div class="col-4">
                         <label for="">Correo</label>
                         <input type="text" id="txt_email" placeholder="Ingresar email del proveedor"  class="form-control"><br>
+                    </div>
+                    <div class="col-12" id="div_mensaje_error">
                     </div>
                 </div>
             </div>
@@ -106,7 +108,7 @@
 
 <!-- Modal Editar Proveedor -->
 <div class="modal fade" id="modal_editar_prov" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel"> Modificar Datos de Proveedor</h5>
@@ -117,34 +119,36 @@
             <div class="modal-body">
                 <div class="row">
                     
-                    <div class="col-12">
+                    <div class="col-3">
                         <label for="">CI</label>
                         <input type="text" id="txt_cedula_editar" class="form-control" disabled><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-9">
                         <label for="">RIF</label>
                         <input type="text" id="txt_rif_editar" class="form-control" ><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-6">
                         <label for="">Nombre</label>
                         <input type="text" id="txt_nombre_editar" class="form-control"><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-6">
                         <label for="">Apellido</label>
                         <input type="text" id="txt_apellido_editar" class="form-control"><br>
                         </select>
                     </div>
-                    <div class="col-12">
+                    <div class="col-4">
                         <label for="">Dirección</label>
                         <input type="text" id="txt_dir_editar" class="form-control"><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-4">
                         <label for="">Teléfono</label>
                         <input type="text" id="txt_tlf_editar" class="form-control"><br>
                     </div>
-                    <div class="col-12">
+                    <div class="col-4">
                         <label for="">Correo</label>
                         <input type="text" id="txt_correo_editar" class="form-control"><br>
+                    </div>
+                    <div class="col-12" id="div_mensaje_error_editar">
                     </div>
                 </div>
             </div>

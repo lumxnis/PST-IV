@@ -1,5 +1,5 @@
 {% load static %}
-<script src="{% static 'js/pacientes/pacientes.js' %}"></script>
+<script src="{% static 'js/pacientes/paciente.js' %}"></script>
 <script>
     listar_pacientes()
 </script>
@@ -89,6 +89,8 @@
                         <select class="form-control" id="select_sexo" style="width: 100%">
                             <option value="">Seleccione...</option>
                         </select>
+                    </div>
+                    <div class="col-12" id="div_mensaje_error">
                     </div>
                 </div>
             </div>

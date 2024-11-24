@@ -5,12 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Proveedores
 from django.db.models import Q
 from django.core.paginator import Paginator
+import re
+import json
 
 ##Proveedores
 @login_required
 def proveedores(request):
     return render(request, 'proveedores/proveedores.html')
-
 
 ##Listar Proveedores
 @login_required
@@ -86,113 +87,115 @@ def listar_proveedores(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
-
-
 ##Registrar Proveedores
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+import re
+
 @login_required
 @csrf_exempt
 def registrar_prov(request):
     if request.method == 'POST':
-        ci = request.POST.get('c')
-        rif = request.POST.get('r')
-        nombre = request.POST.get('n')
-        apellido = request.POST.get('a')
-        direccion = request.POST.get('d')
-        telefono = request.POST.get('t')
-        email = request.POST.get('e')
+        try:
+            ci = request.POST.get('c', '').strip()
+            rif = request.POST.get('r', '').strip()
+            nombre = request.POST.get('n', '').strip()
+            apellido = request.POST.get('a', '').strip()
+            direccion = request.POST.get('d', '').strip()
+            telefono = request.POST.get('t', '').strip()
+            email = request.POST.get('e', '').strip()
 
-        if not all([ci, rif, nombre, apellido, direccion, telefono, email]):
-            return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
+            if not (ci and rif and nombre and apellido and direccion and telefono and email):
+                return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
 
-        if Proveedores.objects.filter(cedula_prov=ci).exists():
-            return JsonResponse({'success': False, 'message': 'El proveedor con esta cédula ya existe.'})
+            errores = []
 
-        if Proveedores.objects.filter(email_prov=email).exists():
-            return JsonResponse({'success': False, 'message': 'El proveedor con este email ya existe.'})
+            if not re.match(r'^\d{8,10}$', ci):
+                errores.append('La cédula debe contener entre 8 y 10 dígitos.')
+            if not re.match(r'^\+58\d{10}$', telefono):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombre):
+                errores.append('El campo de nombre solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apellido):
+                errores.append('El campo de apellido solo debe contener letras.')
+            if Proveedores.objects.filter(cedula_prov=ci).exists():
+                errores.append('El proveedor con esta cédula ya existe.')
+            if Proveedores.objects.filter(email_prov=email).exists():
+                errores.append('El proveedor con este email ya existe.')
+            if Proveedores.objects.filter(rif__iexact=rif).exists():
+                errores.append('El proveedor con este rif ya existe.')
 
-        proveedor = Proveedores(
-            cedula_prov=ci,
-            rif=rif,
-            nombre_prov=nombre,
-            apellido_prov=apellido,
-            direccion_prov=direccion,
-            telefono_prov=telefono,
-            email_prov=email
-        )
-        proveedor.save()
-        return JsonResponse({'success': True, 'message': 'Proveedor registrado exitosamente.'})
-    return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
+            if errores:
+                return JsonResponse({'success': False, 'message': '<br>'.join(errores)})
 
+            proveedor = Proveedores(
+                cedula_prov=ci,
+                rif=rif,
+                nombre_prov=nombre,
+                apellido_prov=apellido,
+                direccion_prov=direccion,
+                telefono_prov=telefono,
+                email_prov=email
+            )
+            proveedor.save()
+            return JsonResponse({'success': True, 'message': 'Proveedor registrado exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
 
-##Modificar Proveedores
-@login_required
-@csrf_exempt
-def registrar_prov(request):
-    if request.method == 'POST':
-        ci = request.POST.get('c')
-        rif = request.POST.get('r')
-        nombre = request.POST.get('n')
-        apellido = request.POST.get('a')
-        direccion = request.POST.get('d')
-        telefono = request.POST.get('t')
-        email = request.POST.get('e')
-
-        if not all([ci, rif, nombre, apellido, direccion, telefono, email]):
-            return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
-
-        if Proveedores.objects.filter(cedula_prov=ci).exists():
-            return JsonResponse({'success': False, 'message': 'El proveedor con esta cédula ya existe.'})
-
-        if Proveedores.objects.filter(email_prov=email).exists():
-            return JsonResponse({'success': False, 'message': 'El proveedor con este email ya existe.'})
-
-        proveedor = Proveedores(
-            cedula_prov=ci,
-            rif=rif,
-            nombre_prov=nombre,
-            apellido_prov=apellido,
-            direccion_prov=direccion,
-            telefono_prov=telefono,
-            email_prov=email
-        )
-        proveedor.save()
-        return JsonResponse({'success': True, 'message': 'Proveedor registrado exitosamente.'})
-    return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
-
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
 ##Modificar Proveedores
 @login_required
 @csrf_exempt
 def modificar_prov(request):
     if request.method == 'POST':
-        cedula = request.POST.get('cedula')
-        rif = request.POST.get('rif')
-        nombre = request.POST.get('nombre')
-        apellido = request.POST.get('apellido')
-        direccion = request.POST.get('direccion')
-        telefono = request.POST.get('telefono')
-        email = request.POST.get('email')
-
-        if not all([cedula, rif, nombre, apellido, direccion, telefono, email]):
-            return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
-
         try:
-            proveedor = Proveedores.objects.get(cedula_prov=cedula)
-            proveedor.rif = rif
-            proveedor.nombre_prov = nombre
-            proveedor.apellido_prov = apellido
-            proveedor.direccion_prov = direccion
-            proveedor.telefono_prov = telefono
-            proveedor.email_prov = email
-            proveedor.save()
+            cedula = request.POST.get('cedula', '').strip()
+            rif = request.POST.get('rif', '').strip()
+            nombre = request.POST.get('nombre', '').strip()
+            apellido = request.POST.get('apellido', '').strip()
+            direccion = request.POST.get('direccion', '').strip()
+            telefono = request.POST.get('telefono', '').strip()
+            email = request.POST.get('email', '').strip()
 
-            return JsonResponse({'status': 'success', 'message': 'Proveedor actualizado exitosamente.'})
-        except Proveedores.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'El proveedor no existe.'})
+            if not (cedula and rif and nombre and apellido and direccion and telefono and email):
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+
+            errores = []
+
+            if not re.match(r'^\d{8,10}$', cedula):
+                errores.append('La cédula debe contener entre 8 y 10 dígitos.')
+            if not re.match(r'^\+58\d{10}$', telefono):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombre):
+                errores.append('El campo de nombre solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apellido):
+                errores.append('El campo de apellido solo debe contener letras.')
+            if Proveedores.objects.filter(email_prov=email).exclude(cedula_prov=cedula).exists():
+                errores.append('El proveedor con este email ya existe.')
+            if Proveedores.objects.filter(rif__iexact=rif).exclude(cedula_prov=cedula).exists():
+                errores.append('El proveedor con este rif ya existe.')
+
+            if errores:
+                return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
+
+            try:
+                proveedor = Proveedores.objects.get(cedula_prov=cedula)
+                proveedor.rif = rif
+                proveedor.nombre_prov = nombre
+                proveedor.apellido_prov = apellido
+                proveedor.direccion_prov = direccion
+                proveedor.telefono_prov = telefono
+                proveedor.email_prov = email
+                proveedor.save()
+                return JsonResponse({'status': 'success', 'message': 'Proveedor actualizado exitosamente.'})
+            except Proveedores.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'El proveedor no existe.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
-    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
 ##Eliminar Proveedor

@@ -135,30 +135,25 @@ def registrar_paciente(request):
             sexo = data.get('sexo', '').strip().upper()
 
             if not (ci and nombres and apepat and apemat and tlf and fecha_nacimiento and sexo):
-                print("Error: Todos los campos son obligatorios.")
                 return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
 
+            errores = []
+
             if not re.match(r'^\d{8,10}$', ci):
-                print("Error: La cédula debe contener entre 8 y 10 dígitos.")
-                return JsonResponse({'status': 'error', 'message': 'La cédula debe contener entre 8 y 10 dígitos.'})
-
+                errores.append('La cédula debe contener entre 8 y 10 dígitos.')
             if not re.match(r'^\+58\d{10}$', tlf):
-                print("Error: El formato del teléfono es incorrecto.")
-                return JsonResponse({'status': 'error', 'message': 'El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.'})
-
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
-                print("Error: El campo de nombres solo debe contener letras y espacios.")
-                return JsonResponse({'status': 'error', 'message': 'El campo de nombres solo debe contener letras y espacios.'})
+                errores.append('El campo de nombres solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apepat):
-                print("Error: El campo de apellido paterno solo debe contener letras y espacios.")
-                return JsonResponse({'status': 'error', 'message': 'El campo de apellido paterno solo debe contener letras y espacios.'})
+                errores.append('El campo de apellido paterno solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apemat):
-                print("Error: El campo de apellido materno solo debe contener letras y espacios.")
-                return JsonResponse({'status': 'error', 'message': 'El campo de apellido materno solo debe contener letras y espacios.'})
-
+                errores.append('El campo de apellido materno solo debe contener letras.')
             if Paciente.objects.filter(paciente_dni=ci).exists():
-                print("Error: Ya existe un paciente registrado con esa cédula de identidad.")
-                return JsonResponse({'status': 'error', 'message': 'Ya existe un paciente registrado con esa cédula de identidad.'})
+                errores.append('Ya existe un paciente registrado con esa cédula de identidad.')
+
+            if errores:
+                return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
 
             nuevo_paciente = Paciente(
                 paciente_nombres=nombres,
@@ -170,10 +165,10 @@ def registrar_paciente(request):
                 paciente_sexo=sexo
             )
             nuevo_paciente.save()
-            print("Paciente registrado correctamente.")
-
             return JsonResponse({'status': 'success', 'message': 'Paciente registrado correctamente.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
-    return render(request, 'adminlite/registro_paciente.html')
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+

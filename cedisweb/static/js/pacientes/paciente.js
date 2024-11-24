@@ -61,7 +61,7 @@ var tbl_pacientes;
 function listar_pacientes() {
     tbl_pacientes = $("#tabla_pacientes").DataTable({
         "pageLength": 10,
-        "serverSide": true,  // Activar el procesamiento del lado del servidor
+        "serverSide": true,  
         "destroy": true,
         "processing": true,
         "deferRender": true,
@@ -119,7 +119,6 @@ function listar_pacientes() {
     });
 }
 
-
 //LIMPIAR MODAL
 function limpiar_modal_paciente() {
     document.getElementById('txt_ci').value = "";
@@ -130,15 +129,7 @@ function limpiar_modal_paciente() {
     document.getElementById('txt_fecha_nacimiento').value = "";
 }
 
-///VALIDACIONES///
-function validarTelefono(tlf) {
-    if (tlf.length === 0) {
-        return { valido: false, mensaje: "El campo del teléfono es obligatorio." };
-    }
-    const regex = /^\+58\d{10}$/;
-    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
-}
-
+//VALIDACIONES
 function validarCedula(ci) {
     if (ci.length === 0) {
         return { valido: false, mensaje: "El campo de la cédula es obligatorio." };
@@ -147,22 +138,14 @@ function validarCedula(ci) {
     return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 8 y 10 dígitos numéricos." };
 }
 
-function soloLetras(e) {
-    var tecla = e.key.toLowerCase();
-    var letras = " áéíóúabcdefghijklmnñopqrstuvwxyz";
-    var especiales = ["Backspace", "ArrowLeft", "ArrowRight", "Delete"];
-
-    if (letras.indexOf(tecla) === -1 && !especiales.includes(tecla)) {
-        e.preventDefault();  
-        return false;  
+function validarTelefono(tlf) {
+    if (tlf.length === 0) {
+        return { valido: false, mensaje: "El campo del teléfono es obligatorio." };
     }
-
-    return true;
+    const regex = /^\+58\d{10}$/;
+    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
 }
 
-document.getElementById('txt_nombres').addEventListener('keypress', soloLetras);
-document.getElementById('txt_apepat').addEventListener('keypress', soloLetras);
-document.getElementById('txt_apemat').addEventListener('keypress', soloLetras);
 
 function validarFecha(fecha) {
     if (fecha.length === 0) {
@@ -172,107 +155,107 @@ function validarFecha(fecha) {
 }
 
 function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento) {
-    let errores = [];
-
-    const validarCampoYAgregarError = (campoId, validarFn) => {
+    const validarCampoYAgregarClase = (campoId, validarFn) => {
         const campo = document.getElementById(campoId);
         if (campo) {
             const resultado = validarFn(campo.value.trim());
             if (!resultado.valido) {
-                errores.push(resultado.mensaje);
                 $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
             } else {
                 $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
             }
-        } else {
-            console.log(`El elemento con id ${campoId} no existe.`);
         }
     };
 
-    validarCampoYAgregarError(ci, validarCedula);
-    validarCampoYAgregarError(nombre, valor => ({
-        valido: valor.length > 0,
-        mensaje: "El nombre es obligatorio."
-    }));
-    validarCampoYAgregarError(apepat, valor => ({
-        valido: valor.length > 0,
-        mensaje: "El apellido paterno es obligatorio."
-    }));
-    validarCampoYAgregarError(apemat, valor => ({
-        valido: valor.length > 0,
-        mensaje: "El apellido materno es obligatorio."
-    }));
-    validarCampoYAgregarError(tlf, validarTelefono);
-    validarCampoYAgregarError(fechaNacimiento, validarFecha);
-
-    if (errores.length > 0) {
-        Swal.fire("Mensaje de Error", errores.join("<br>"), "error");
-        return false;
-    }
-    return true;
+    validarCampoYAgregarClase(ci, validarCedula);
+    validarCampoYAgregarClase(nombre, valor => ({ valido: valor.length > 0 }));
+    validarCampoYAgregarClase(apepat, valor => ({ valido: valor.length > 0 }));
+    validarCampoYAgregarClase(apemat, valor => ({ valido: valor.length > 0 }));
+    validarCampoYAgregarClase(tlf, validarTelefono);
+    validarCampoYAgregarClase(fechaNacimiento, validarFecha);
 }
-///VALIDACIONES///
+//VALIDACIONES
 
-//REGISTRAR PACIENTE
+//Registrar Paciente
 function registrar_paciente() {
-    const ciElem = document.getElementById('txt_ci');
-    const nombresElem = document.getElementById('txt_nombres');
-    const apepatElem = document.getElementById('txt_apepat');
-    const apematElem = document.getElementById('txt_apemat');
-    const tlfElem = document.getElementById('txt_tlf');
-    const fechaNacimientoElem = document.getElementById('txt_fecha_nacimiento');
-    const sexoElem = document.getElementById('select_sexo');
+    const ci = document.getElementById("txt_ci").value.trim();
+    const nombres = document.getElementById("txt_nombres").value.trim();
+    const apepat = document.getElementById("txt_apepat").value.trim();
+    const apemat = document.getElementById("txt_apemat").value.trim();
+    const telefono = document.getElementById("txt_tlf").value.trim();
+    const fecha_nacimiento = document.getElementById("txt_fecha_nacimiento").value.trim();
+    const sexo = document.getElementById("select_sexo").value.trim();
 
-    if (!ciElem || !nombresElem || !apepatElem || !apematElem || !tlfElem || !fechaNacimientoElem || !sexoElem) {
-        console.log('Error: Uno o más elementos del formulario no existen en el DOM.');
-        Swal.fire("Error", "Todos los campos son obligatorios.", "error");
-        return;
-    }
+    validarInput("txt_ci", "txt_nombres", "txt_apepat", "txt_apemat", "txt_tlf", "txt_fecha_nacimiento");
 
-    const ci = ciElem.value.trim();
-    const nombres = nombresElem.value.trim();
-    const apepat = apepatElem.value.trim();
-    const apemat = apematElem.value.trim();
-    const tlf = tlfElem.value.trim();
-    const fechaNacimiento = fechaNacimientoElem.value.trim();
-    const sexo = sexoElem.value.trim();
-
-    if (!validarInput('txt_ci', 'txt_nombres', 'txt_apepat', 'txt_apemat', 'txt_tlf', 'txt_fecha_nacimiento')) {
-        return;
-    }
-
-    fetch('/registrar_paciente/', {
-        method: 'POST',
+    $.ajax({
+        url: '/registrar_paciente/',
+        type: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken')
         },
-        body: JSON.stringify({
+        data: JSON.stringify({
             ci: ci,
             nombres: nombres,
             apepat: apepat,
             apemat: apemat,
-            tlf: tlf,
-            fecha_nacimiento: fechaNacimiento,
+            tlf: telefono,
+            fecha_nacimiento: fecha_nacimiento,
             sexo: sexo
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            limpiar_modal_paciente();
-            Swal.fire("Registro Exitoso", data.message, "success")
-                .then(() => {
-                    $('#modal_registro_paciente').modal('hide');
-                    tbl_pacientes.ajax.reload();
-                });
-        } else {
-            Swal.fire("Error", `No se pudo registrar el Paciente: ${data.message}`, "error");
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.status === 'success') {
+                Swal.fire("Registro Exitoso", response.message, "success");
+                $('#modal_registro_paciente').modal('hide');
+                tbl_pacientes.ajax.reload(); 
+                limpiar_modal_paciente();
+                document.getElementById('div_mensaje_error').innerHTML = '';
+            } else {
+                if (response.message.includes("La cédula debe contener")) {
+                    $("#txt_ci").addClass("is-invalid");
+                }
+                if (response.message.includes("El campo de nombres solo debe contener letras")) {
+                    $("#txt_nombres").addClass("is-invalid");
+                }
+                if (response.message.includes("El campo de apellido paterno solo debe contener letras")) {
+                    $("#txt_apepat").addClass("is-invalid");
+                }
+                if (response.message.includes("El campo de apellido materno solo debe contener letras")) {
+                    $("#txt_apemat").addClass("is-invalid");
+                }
+                if (response.message.includes("El formato del número de teléfono es incorrecto")) {
+                    $("#txt_tlf").addClass("is-invalid");
+                }
+                if (response.message.includes("Ya existe un paciente registrado con esa cédula")) {
+                    $("#txt_ci").addClass("is-invalid");
+                }
+                
+                document.getElementById('div_mensaje_error').innerHTML = '<br>' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + response.message + '</div>';
+            }
+        },
+        error: function(xhr, status, error) {
+            document.getElementById('div_mensaje_error').innerHTML = '<br>' +
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+            '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
+            'Error al registrar paciente. Por favor, inténtelo de nuevo.</div>';
         }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
     });
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

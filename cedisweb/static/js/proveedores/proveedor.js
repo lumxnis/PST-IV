@@ -104,7 +104,6 @@ function listar_proveedores() {
     });
 }
 
-
 //Limpiar Campos
 function limpiar_modal_prov() {
     document.getElementById('txt_cedula').value = ""
@@ -116,62 +115,62 @@ function limpiar_modal_prov() {
     document.getElementById('txt_email').value = ""
 }
 
-//VALIDADCIONES
+//VALIDACIONES//
 function validarTelefono(tlf) {
-    if (tlf.length === 0) {
-        return { valido: false, mensaje: "El campo del teléfono es obligatorio." };
-    }
     const regex = /^\+58\d{10}$/;
     return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
 }
 
 function validarCedula(ci) {
-    if (ci.length === 0) {
-        return { valido: false, mensaje: "El campo de la cédula es obligatorio." };
-    }
     const regex = /^\d{8,10}$/;
     return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 8 y 10 dígitos numéricos." };
 }
 
 function validarRIF(rif) {
-    if (rif.length === 0) {
-        return { valido: false, mensaje: "El campo del RIF es obligatorio." };
-    }
     const regex = /^[JGVEP][0-9]{8}[0-9]$/;
     return { valido: regex.test(rif), mensaje: "El formato del RIF es incorrecto. Debe comenzar con J, G, V o E, seguido de 8 dígitos y un dígito verificador." };
 }
 
 function validarEmail(email) {
-    if (email.length === 0) {
-        return { valido: false, mensaje: "El campo del email es obligatorio." };
-    }
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return { valido: regex.test(email), mensaje: "El formato del email ingresado es incorrecto." };
 }
 
-function validarInput(ci, rif, nombre_prov, apellido_prov, direccion_prov, telefono_prov, email_prov) {
+function validarNombre(valor) {
+    const regex = /^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$/;
+    return { valido: regex.test(valor), mensaje: "El campo Nombre solo debe contener letras." };
+}
+
+function validarApellido(valor) {
+    const regex = /^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$/;
+    return { valido: regex.test(valor), mensaje: "El campo Apellido solo debe contener letras." };
+}
+
+function validarInput(ids, mensajeErrorId) {
+    const { ci, rif, nombre_prov, apellido_prov, direccion_prov, telefono_prov, email_prov } = ids;
     let errores = [];
+    let camposVacios = false;
 
     const validarCampoYAgregarError = (campoId, validarFn) => {
-        const resultado = validarFn(document.getElementById(campoId).value);
-        if (!resultado.valido) {
-            errores.push(resultado.mensaje);
+        const valor = document.getElementById(campoId).value.trim();
+        if (valor.length === 0) {
+            camposVacios = true;
             $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
         } else {
-            $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+            const resultado = validarFn(valor);
+            if (!resultado.valido) {
+                errores.push(resultado.mensaje);
+                $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+            } else {
+                $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+            }
         }
     };
 
     validarCampoYAgregarError(ci, validarCedula);
     validarCampoYAgregarError(rif, validarRIF);
-    validarCampoYAgregarError(nombre_prov, valor => ({
-        valido: valor.length > 0,
-        mensaje: "El nombre es obligatorio."
-    }));
-    validarCampoYAgregarError(apellido_prov, valor => ({
-        valido: valor.length > 0,
-        mensaje: "El apellido es obligatorio."
-    }));
+    validarCampoYAgregarError(nombre_prov, validarNombre);
+    validarCampoYAgregarError(apellido_prov, validarApellido);
     validarCampoYAgregarError(direccion_prov, valor => ({
         valido: valor.length > 0,
         mensaje: "La dirección es obligatoria."
@@ -179,25 +178,58 @@ function validarInput(ci, rif, nombre_prov, apellido_prov, direccion_prov, telef
     validarCampoYAgregarError(telefono_prov, validarTelefono);
     validarCampoYAgregarError(email_prov, validarEmail);
 
+    if (camposVacios) {
+        document.getElementById(mensajeErrorId).innerHTML = '<br>' +
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+            '<h5><i class="icon fas fa-ban"></i> Todos los campos son obligatorios.</h5></div>';
+        return false;
+    }
+
     if (errores.length > 0) {
-        Swal.fire("Mensaje de Error", errores.join("<br>"), "error");
+        document.getElementById(mensajeErrorId).innerHTML = '<br>' +
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+            '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + errores.join("<br>") + '</div>';
         return false;
     }
     return true;
 }
-//VALIDACIONES
+
+function marcarCamposExistentes(message) {
+    if (message.includes("El proveedor con esta cédula ya existe")) {
+        $("#txt_cedula").addClass("is-invalid");
+    }
+    if (message.includes("El proveedor con este email ya existe")) {
+        $("#txt_email").addClass("is-invalid");
+    }
+    if (message.includes("El proveedor con este rif ya existe")) {
+        $("#txt_rif").addClass("is-invalid");
+    }
+}
+//VALIDACIONES//
 
 //Registrar Proveedor
 function registrar_prov() {
-    let ci = document.getElementById('txt_cedula').value;
-    let rif = document.getElementById('txt_rif').value;
-    let nombre_prov = document.getElementById('txt_nombre').value;
-    let apellido_prov = document.getElementById('txt_apellido').value;
-    let direccion_prov = document.getElementById('txt_dir').value;
-    let telefono_prov = document.getElementById('txt_tlf').value;
-    let email_prov = document.getElementById('txt_email').value;
+    let ci = document.getElementById('txt_cedula').value.trim();
+    let rif = document.getElementById('txt_rif').value.trim();
+    let nombre_prov = document.getElementById('txt_nombre').value.trim();
+    let apellido_prov = document.getElementById('txt_apellido').value.trim();
+    let direccion_prov = document.getElementById('txt_dir').value.trim();
+    let telefono_prov = document.getElementById('txt_tlf').value.trim();
+    let email_prov = document.getElementById('txt_email').value.trim();
 
-    if (validarInput('txt_cedula', 'txt_rif', 'txt_nombre', 'txt_apellido', 'txt_dir', 'txt_tlf', 'txt_email')) {
+    const ids = {
+        ci: 'txt_cedula',
+        rif: 'txt_rif',
+        nombre_prov: 'txt_nombre',
+        apellido_prov: 'txt_apellido',
+        direccion_prov: 'txt_dir',
+        telefono_prov: 'txt_tlf',
+        email_prov: 'txt_email'
+    };
+
+    if (validarInput(ids, 'div_mensaje_error')) {
         let formData = new FormData();
         formData.append('c', ci);
         formData.append('r', rif);
@@ -220,10 +252,48 @@ function registrar_prov() {
                     Swal.fire("Mensaje de Éxito", resp.message, "success").then((value) => {
                         $("#modal_registro_prov").modal('hide');
                         tbl_prov.ajax.reload();
+                        document.getElementById('div_mensaje_error').innerHTML = '';
                     });
                 } else {
-                    Swal.fire("Mensaje de Error", resp.message, "error");
+                    if (resp.message.includes("El proveedor con esta cédula ya existe")) {
+                        $("#txt_cedula").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El proveedor con este email ya existe")) {
+                        $("#txt_email").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El proveedor con este rif ya existe")) {
+                        $("#txt_rif").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El formato del número de teléfono es incorrecto")) {
+                        $("#txt_tlf").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El formato del RIF es incorrecto")) {
+                        $("#txt_rif").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El formato del email ingresado es incorrecto")) {
+                        $("#txt_email").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El campo de la cédula debe contener")) {
+                        $("#txt_cedula").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El campo de nombres solo debe contener letras.")) {
+                        $("#txt_nombre").addClass("is-invalid");
+                    }
+                    if (resp.message.includes("El campo de apellidos solo debe contener letras.")) {
+                        $("#txt_apellido").addClass("is-invalid");
+                    }
+                    document.getElementById('div_mensaje_error').innerHTML = '<br>' +
+                    '<div class="alert alert-danger alert-dismissible">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                    '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + resp.message + '</div>';
                 }
+            },
+            error: function(xhr, status, error) {
+                document.getElementById('div_mensaje_error').innerHTML = '<br>' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
+                'Error al registrar proveedor. Por favor, inténtelo de nuevo.</div>';
             }
         });
     }
@@ -232,15 +302,25 @@ function registrar_prov() {
 
 //Actualizar Proveedor
 function modificar_prov() {
-    let ci = document.getElementById('txt_cedula_editar').value;
-    let rif = document.getElementById('txt_rif_editar').value;
-    let nombre_prov = document.getElementById('txt_nombre_editar').value;
-    let apellido_prov = document.getElementById('txt_apellido_editar').value;
-    let direccion_prov = document.getElementById('txt_dir_editar').value;
-    let telefono_prov = document.getElementById('txt_tlf_editar').value;
-    let email_prov = document.getElementById('txt_correo_editar').value;
+    let ci = document.getElementById('txt_cedula_editar').value.trim();
+    let rif = document.getElementById('txt_rif_editar').value.trim();
+    let nombre_prov = document.getElementById('txt_nombre_editar').value.trim();
+    let apellido_prov = document.getElementById('txt_apellido_editar').value.trim();
+    let direccion_prov = document.getElementById('txt_dir_editar').value.trim();
+    let telefono_prov = document.getElementById('txt_tlf_editar').value.trim();
+    let email_prov = document.getElementById('txt_correo_editar').value.trim();
 
-    if (validarInput('txt_cedula_editar', 'txt_rif_editar', 'txt_nombre_editar', 'txt_apellido_editar', 'txt_dir_editar', 'txt_tlf_editar', 'txt_correo_editar')) {
+    const ids = {
+        ci: 'txt_cedula_editar',
+        rif: 'txt_rif_editar',
+        nombre_prov: 'txt_nombre_editar',
+        apellido_prov: 'txt_apellido_editar',
+        direccion_prov: 'txt_dir_editar',
+        telefono_prov: 'txt_tlf_editar',
+        email_prov: 'txt_correo_editar'
+    };
+
+    if (validarInput(ids, 'div_mensaje_error_editar')) {
         let formData = new URLSearchParams();
         formData.append('cedula', ci);
         formData.append('rif', rif);
@@ -264,18 +344,45 @@ function modificar_prov() {
                 Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
                     $("#modal_editar_prov").modal('hide');
                     tbl_prov.ajax.reload();
+                    document.getElementById('div_mensaje_error_editar').innerHTML = '';
                 });
             } else {
-                Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+                // Marcar campos con is-invalid si hay errores
+                if (data.message.includes("El proveedor con este rif ya existe")) {
+                    $("#txt_rif_editar").addClass("is-invalid");
+                }
+                if (data.message.includes("El proveedor con este email ya existe")) {
+                    $("#txt_correo_editar").addClass("is-invalid");
+                }
+                if (data.message.includes("El formato del número de teléfono es incorrecto")) {
+                    $("#txt_tlf_editar").addClass("is-invalid");
+                }
+                if (data.message.includes("El formato del RIF es incorrecto")) {
+                    $("#txt_rif_editar").addClass("is-invalid");
+                }
+                if (data.message.includes("El formato del email ingresado es incorrecto")) {
+                    $("#txt_correo_editar").addClass("is-invalid");
+                }
+                if (data.message.includes("El campo de la cédula debe contener")) {
+                    $("#txt_cedula_editar").addClass("is-invalid");
+                }
+                
+                document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + data.message + '</div>';
             }
         })
         .catch(error => {
-            Swal.fire("Error", 'Error: ' + error, "error");
+            document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+            '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
+            'Error al modificar proveedor. Por favor, inténtelo de nuevo.</div>';
         });
     }
     return false;
 }
-
 
 //ELIMINAR PROVEEDOR
 $('#tabla_proveedor').on('click', '.eliminar', function () {
