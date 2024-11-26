@@ -1,5 +1,5 @@
 {% load static %}
-<script src="{% static 'js/pacientes/paciente.js' %}"></script>
+<script src="{% static 'js/pacientes/pacientess.js' %}"></script>
 <script>
     listar_pacientes()
 </script>
@@ -49,14 +49,15 @@
 
 
 <!-- Modal Registro Paciente -->
-<div class="modal fade" id="modal_registro_paciente" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modal_registro_paciente" tabindex="-1" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel"> Registro Paciente</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
-                </button>                                                        
+                </button>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -66,7 +67,8 @@
                     </div>
                     <div class="col-9">
                         <label for="txt_nombres">Nombres</label>
-                        <input type="text" id="txt_nombres" placeholder="Ingresar nombres del paciente" class="form-control"><br>
+                        <input type="text" id="txt_nombres" placeholder="Ingresar nombres del paciente"
+                            class="form-control"><br>
                     </div>
                     <div class="col-6">
                         <label for="txt_apepat">Apellido Paterno</label>
@@ -74,7 +76,8 @@
                     </div>
                     <div class="col-6">
                         <label for="txt_apemat">Apellido Materno</label>
-                        <input type="text" id="txt_apemat" placeholder="Ingresar apellido materno" class="form-control"><br>
+                        <input type="text" id="txt_apemat" placeholder="Ingresar apellido materno"
+                            class="form-control"><br>
                     </div>
                     <div class="col-6">
                         <label for="txt_tlf">Teléfono</label>
@@ -88,6 +91,8 @@
                         <label for="select_sexo">SEXO</label>
                         <select class="form-control" id="select_sexo" style="width: 100%">
                             <option value="">Seleccione...</option>
+                            <option value="masculino">MASCULINO</option>
+                            <option value="femenino">FEMENINO</option>
                         </select>
                     </div>
                     <div class="col-12" id="div_mensaje_error">
@@ -95,7 +100,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>
                 <button type="button" class="btn btn-primary" onclick="registrar_paciente()">Registrar</button>
             </div>
         </div>
@@ -105,43 +110,59 @@
 
 <!-- Modal Editar Paciente -->
 <div class="modal fade" id="modal_editar_paciente" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel"> Modificar Examen</h5>
+                <h5 class="modal-title" id="exampleModalLabel"> Modificar Paciente</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
-                </button>                                                        
+                </button>
             </div>
             <div class="modal-body">
                 <div class="row">
-
-                    <div class="col-12">
-                        <label for="">ID</label>
-                        <input type="text" id="txt_idexamen_editar" class="form-control" disabled><br>
+                    <div class="col-3">
+                        <label for="txt_ci_editar">Cédula</label>
+                        <input type="text" id="txt_ci_editar" data-id="" placeholder="Cédula" class="form-control" disabled>
                     </div>
-                    <div class="col-12">
-                        <label for="">Examen</label>
-                        <input type="text" id="txt_examen_editar" class="form-control"><br>
+                    <div class="col-9">
+                        <label for="txt_nombres_editar">Nombres</label>
+                        <input type="text" id="txt_nombres_editar" placeholder="Ingresar nombres del paciente"
+                            class="form-control"><br>
                     </div>
-                    <div class="col-12">
-                        <label for="">Análisis</label>
-                        <select class="js-example-basic-single" name="" id="select_analisis_editar" style="width: 100%">
-                        </select><br>
+                    <div class="col-6">
+                        <label for="txt_apepat_editar">Apellido Paterno</label>
+                        <input type="text" id="txt_apepat_editar" placeholder="Ingresar apellido paterno"
+                            class="form-control">
                     </div>
-                    <div class="col-12">
-                        <label for="">Estatus</label>
-                        <select class="js-example-basic-single" name="" id="select_estatus_editar" style="width: 100%">
+                    <div class="col-6">
+                        <label for="txt_apemat_editar">Apellido Materno</label>
+                        <input type="text" id="txt_apemat_editar" placeholder="Ingresar apellido materno"
+                            class="form-control"><br>
+                    </div>
+                    <div class="col-6">
+                        <label for="txt_tlf_editar">Teléfono</label>
+                        <input type="text" id="txt_tlf_editar" placeholder="Teléfono" class="form-control">
+                    </div>
+                    <div class="col-6">
+                        <label for="txt_fecha_nacimiento_editar">Fecha de Nacimiento</label>
+                        <input type="date" id="txt_fecha_nacimiento_editar" class="form-control"><br>
+                    </div>
+                    <div class="col-6">
+                        <label for="select_sexo_editar">SEXO</label>
+                        <select class="form-control" id="select_sexo_editar" style="width: 100%">
                         </select>
                     </div>
+                    <div class="col-12" id="div_mensaje_error_editar">
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
-                <button type="button" class="btn btn-primary" onclick="modificar_paciente()
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        aria-label="Close">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="modificarPaciente()
                 ">Modificar</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
-<!-- Fin Modal-->
+    <!-- Fin Modal-->

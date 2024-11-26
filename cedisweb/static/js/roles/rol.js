@@ -5,11 +5,6 @@ function ModalRegistroRol() {
     $("#modal_registro_rol").modal('show'); 
 }
 
-// INICIALIZAR SELECT
-$(document).ready(function () {
-    $('.js-example-basic-single').select2();
-});
-
 //LISTAR ROL
 function getCookie(name) {
     var cookieValue = null;

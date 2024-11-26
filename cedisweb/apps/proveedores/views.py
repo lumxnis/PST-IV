@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 import re
 import json
+from django.db.models.deletion import RestrictedError
 
 ##Proveedores
 @login_required
@@ -88,11 +89,6 @@ def listar_proveedores(request):
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
 ##Registrar Proveedores
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-import re
-
 @login_required
 @csrf_exempt
 def registrar_prov(request):
@@ -111,8 +107,8 @@ def registrar_prov(request):
 
             errores = []
 
-            if not re.match(r'^\d{8,10}$', ci):
-                errores.append('La cédula debe contener entre 8 y 10 dígitos.')
+            if not re.match(r'^\d{7,10}$', ci):
+                errores.append('La cédula debe contener entre 7 y 10 dígitos.')
             if not re.match(r'^\+58\d{10}$', telefono):
                 errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombre):
@@ -210,14 +206,24 @@ def eliminar_prov(request):
 
         try:
             proveedor = Proveedores.objects.get(cedula_prov=cedula)
-            proveedor.delete()
-            return JsonResponse({'status': 'success', 'message': 'Proveedor eliminado exitosamente.'})
+
+            try:
+                proveedor.delete()
+                return JsonResponse({'status': 'success', 'message': 'Proveedor eliminado exitosamente.'})
+            except RestrictedError:
+                return JsonResponse({'status': 'error', 'message': 'El proveedor se encuentra asociado a insumos en stock.'})
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)})
         except Proveedores.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'El proveedor no existe.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+
+
+
 
 
 

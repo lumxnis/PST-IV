@@ -8,7 +8,6 @@ $('#modal_registro_prov').on('hidden.bs.modal', function () {
     document.getElementById('div_mensaje_error').innerHTML = ''; 
 });
 
-
 ////Modal Editar Proveedor
 $('#tabla_proveedor').on('click', '.editar', function () {
     var data = tbl_prov.row($(this).parents('tr')).data();
@@ -33,8 +32,6 @@ $('#tabla_proveedor').on('click', '.editar', function () {
         document.getElementById('div_mensaje_error_editar').innerHTML = ''; 
     });
 })
-
-
 
 //LISTAR Proveedores
 function getCookie(name) {
@@ -131,8 +128,8 @@ function validarTelefono(tlf) {
 }
 
 function validarCedula(ci) {
-    const regex = /^\d{8,10}$/;
-    return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 8 y 10 dígitos numéricos." };
+    const regex = /^\d{7,10}$/;
+    return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 7 y 10 dígitos numéricos." };
 }
 
 function validarRIF(rif) {

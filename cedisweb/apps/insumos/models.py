@@ -4,7 +4,7 @@ from proveedores.models import Proveedores
 
 class Productos(models.Model):
     codigo = models.CharField(primary_key=True, max_length=12)
-    proveedor = models.ForeignKey(Proveedores, on_delete=models.CASCADE)
+    proveedor = models.ForeignKey(Proveedores, on_delete=models.RESTRICT)
     nombrep = models.CharField(max_length=20)
     cantidad = models.CharField(max_length=20)
     descripcion = models.CharField(max_length=55)

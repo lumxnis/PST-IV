@@ -1,7 +1,6 @@
 //ABRIR FORMULARIO DE REGISTRO DE PACIENTES
 function ModalRegistroPaciente() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
-    cargarSexo();
     $("#modal_registro_paciente").modal({ backdrop: 'static', keyboard: false });
     $("#modal_registro_paciente").modal('show');
 }
@@ -11,18 +10,12 @@ $('#modal_registro_paciente').on('hidden.bs.modal', function () {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
 });
 
-
-//CARGAR OPCIONES
-function cargarOpcionesSelect(selectorId, opciones) {
-    var select = $("#" + selectorId);
+//Cargar Sexo
+function cargarSexo(sexoActual) {
+    var select = $("#select_sexo_editar");
     select.empty();
-    opciones.forEach(function(option) {
-        select.append(new Option(option.text, option.value));
-    });
-}
 
-function cargarSexo() {
-    fetch('/obtener_opciones/', {
+    fetch('/obtener_sexo/', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -31,20 +24,18 @@ function cargarSexo() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            var sexoOptions = data.sexo;
-
-            cargarOpcionesSelect('select_sexo', sexoOptions);
+            var sexoOptions = data.data;
+            sexoOptions.forEach(function (option) {
+                select.append(new Option(option.text, option.value));
+            });
+            select.val(sexoActual.toLowerCase());
+            select.trigger('change');
         } else {
-            console.error("Error al obtener opciones: ", data.message);
+            console.error("Error al obtener estatus:", data.message);
         }
     })
     .catch(error => console.error('Error:', error));
 }
-
-// INICIALIZAR SELECT
-$(document).ready(function () {
-    $('.js-example-basic-single').select2();
-});
 
 //LISTAR PACIENTES
 function getCookie(name) {
@@ -133,12 +124,13 @@ function limpiar_modal_paciente() {
     document.getElementById('txt_apemat').value = "";
     document.getElementById('txt_tlf').value = "";
     document.getElementById('txt_fecha_nacimiento').value = "";
+    document.getElementById('select_sexo').value = "";
 }
 
 // VALIDACIONES
 function validarCedula(ci) {
-    const regex = /^\d{8,10}$/;
-    return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 8 y 10 dígitos numéricos." };
+    const regex = /^\d{7,10}$/;
+    return { valido: regex.test(ci), mensaje: "El campo de la cédula debe contener entre 7 y 10 dígitos numéricos." };
 }
 
 function validarTelefono(tlf) {
@@ -160,7 +152,16 @@ function validarApellido(valor) {
     return { valido: regex.test(valor), mensaje: "El campo Apellido solo debe contener letras." };
 }
 
-function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, mensajeErrorId) {
+function validarSelect(selectId) {
+    const selectElement = document.getElementById(selectId);
+    if (selectElement) {
+        const valor = selectElement.value.trim();
+        return { valido: valor !== '', mensaje: "" };
+    }
+    return { valido: false, mensaje: "" };
+}
+
+function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, selectSexo, mensajeErrorId) {
     let camposVacios = false;
     const mensajeErrorDiv = document.getElementById(mensajeErrorId);
 
@@ -189,6 +190,14 @@ function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, mensajeE
     validarCampoYAgregarClase(tlf, validarTelefono);
     validarCampoYAgregarClase(fechaNacimiento, validarFecha);
 
+    const selectSexoResultado = validarSelect(selectSexo);
+    if (!selectSexoResultado.valido) {
+        camposVacios = true;
+        $("#" + selectSexo).removeClass("is-valid").addClass("is-invalid");
+    } else {
+        $("#" + selectSexo).removeClass("is-invalid").addClass("is-valid");
+    }
+
     if (camposVacios) {
         if (mensajeErrorDiv) {
             mensajeErrorDiv.innerHTML = '<br>' +
@@ -213,7 +222,7 @@ function registrar_paciente() {
     const fecha_nacimiento = document.getElementById("txt_fecha_nacimiento").value.trim();
     const sexo = document.getElementById("select_sexo").value.trim();
 
-    validarInput("txt_ci", "txt_nombres", "txt_apepat", "txt_apemat", "txt_tlf", "txt_fecha_nacimiento");
+    validarInput("txt_ci", "txt_nombres", "txt_apepat", "txt_apemat", "txt_tlf", "txt_fecha_nacimiento", "select_sexo");
 
     $.ajax({
         url: '/registrar_paciente/',
@@ -273,6 +282,126 @@ function registrar_paciente() {
         }
     });
 }
+
+//Modal Modificar Paciente
+$('#tabla_pacientes').on('click', '.editar', function () {
+    var data = tbl_pacientes.row($(this).parents('tr')).data();
+
+    if (tbl_pacientes.row(this).child.isShown()) {
+        data = tbl_pacientes.row(this).data();
+    }
+
+    $(".form-control").removeClass("is-invalid").removeClass("is-valid");
+
+    var paciente_id = data.id; 
+
+    fetch(`/obtener_paciente/?id=${paciente_id}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error("Error:", data.error);
+        } else {
+            $("#txt_ci_editar").val(data.paciente_dni);
+            $("#txt_nombres_editar").val(data.paciente_nombres);
+            $("#txt_apepat_editar").val(data.paciente_apepaterno);
+            $("#txt_apemat_editar").val(data.paciente_apematerno);
+            $("#txt_tlf_editar").val(data.paciente_celular);
+            $("#txt_fecha_nacimiento_editar").val(data.fecha_nacimiento);
+
+            cargarSexo(data.paciente_sexo);
+            $("#txt_ci_editar").attr("data-id", paciente_id);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+
+    $('#modal_editar_paciente').modal('show');
+    $('#modal_editar_paciente').modal({ backdrop: 'static', keyboard: false });
+});
+
+//Modificar Paciente
+function modificarPaciente() {
+    const ci = document.getElementById("txt_ci_editar").value.trim();
+    const nombres = document.getElementById("txt_nombres_editar").value.trim();
+    const apepat = document.getElementById("txt_apepat_editar").value.trim();
+    const apemat = document.getElementById("txt_apemat_editar").value.trim();
+    const celular = document.getElementById("txt_tlf_editar").value.trim();
+    const fecha_nacimiento = document.getElementById("txt_fecha_nacimiento_editar").value.trim();
+    const sexo = document.getElementById("select_sexo_editar").value.trim();
+
+    const id = document.getElementById("txt_ci_editar").getAttribute("data-id")
+
+    validarInput("txt_ci_editar", "txt_nombres_editar", "txt_apepat_editar", "txt_apemat_editar", "txt_tlf_editar", "txt_fecha_nacimiento_editar", "select_sexo_editar", "div_mensaje_error_editar")
+    
+    const data = {
+        id: id,
+        ci: ci,
+        nombres: nombres,
+        apepat: apepat,
+        apemat: apemat,
+        celular: celular,
+        fecha_nacimiento: fecha_nacimiento,
+        sexo: sexo
+    };
+
+    $.ajax({
+        url: '/modificar_paciente/',
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.status === 'success') {
+                Swal.fire("Modificación Exitosa", response.message, "success");
+                $('#modal_editar_paciente').modal('hide');
+                tbl_pacientes.ajax.reload(); 
+                limpiar_modal_paciente();
+                document.getElementById('div_mensaje_error_editar').innerHTML = '';
+            } else {
+                if (response.message.includes("La cédula debe contener")) {
+                    $("#txt_ci_editar").addClass("is-invalid");
+                }
+                if (response.message.includes("El campo de nombres solo debe contener letras")) {
+                    $("#txt_nombres_editar").addClass("is-invalid");
+                }
+                if (response.message.includes("El campo de apellido paterno solo debe contener letras")) {
+                    $("#txt_apepat_editar").addClass("is-invalid");
+                }
+                if (response.message.includes("El campo de apellido materno solo debe contener letras")) {
+                    $("#txt_apemat_editar").addClass("is-invalid");
+                }
+                if (response.message.includes("El formato del número de teléfono es incorrecto")) {
+                    $("#txt_tlf_editar").addClass("is-invalid");
+                }
+                if (response.message.includes("Ya existe un paciente registrado con esa cédula")) {
+                    $("#txt_ci_editar").addClass("is-invalid");
+                }
+
+                document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + response.message + '</div>';
+            }
+        },
+        error: function(xhr, status, error) {
+            document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+            '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
+            'Error al modificar paciente. Por favor, inténtelo de nuevo.</div>';
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
 
 
 

@@ -6,11 +6,6 @@ function ModalRegistroExamenes() {
     $("#modal_registro_examen").modal('show');
 }
 
-// INICIALIZAR SELECT
-$(document).ready(function () {
-    $('.js-example-basic-single').select2();
-});
-
 //LISTAR ANÁLISIS
 function getCookie(name) {
     var cookieValue = null;

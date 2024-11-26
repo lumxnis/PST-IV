@@ -10,8 +10,8 @@ class Paciente(models.Model):
     ]
 
     SEXO_CHOICES = [
-        ('masculino', 'Masculino'),
-        ('femenino', 'Femenino'),
+        ('masculino', 'MASCULINO'),
+        ('femenino', 'FEMENINO'),
     ]
 
     paciente_nombres = models.CharField(max_length=100, null=True, blank=True)

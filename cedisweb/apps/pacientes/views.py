@@ -105,19 +105,19 @@ def listar_pacientes(request):
     else:
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-##Cargar Edadtipo y Sexo
+##Cargar Sexo
 @login_required
-def obtener_opciones(request):
-    TIPO_EDAD_CHOICES = Paciente.TIPO_EDAD_CHOICES
-    SEXO_CHOICES = Paciente.SEXO_CHOICES
+def obtener_sexo(request):
+    if request.method == 'GET':
+        try:
+            sexo_choices = Paciente.SEXO_CHOICES
+            estatus_data = [{'value': choice[0], 'text': choice[1]} for choice in sexo_choices]
 
-    data = {
-        'status': 'success',
-        'tipo_edad': [{'value': choice[0], 'text': choice[1]} for choice in TIPO_EDAD_CHOICES],
-        'sexo': [{'value': choice[0], 'text': choice[1]} for choice in SEXO_CHOICES],
-    }
-
-    return JsonResponse(data)
+            return JsonResponse({'status': 'success', 'data': estatus_data})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
 
 ##Registrar Paciente
 @login_required
@@ -139,8 +139,8 @@ def registrar_paciente(request):
 
             errores = []
 
-            if not re.match(r'^\d{8,10}$', ci):
-                errores.append('La cédula debe contener entre 8 y 10 dígitos.')
+            if not re.match(r'^\d{7,10}$', ci):
+                errores.append('La cédula debe contener entre 7 y 10 dígitos.')
             if not re.match(r'^\+58\d{10}$', tlf):
                 errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
@@ -170,5 +170,82 @@ def registrar_paciente(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+##Obtener Paciente
+@login_required
+def obtener_paciente(request):
+    paciente_id = request.GET.get('id')
+    try:
+        paciente = Paciente.objects.get(id=paciente_id)
+        data = {
+            'paciente_dni': paciente.paciente_dni,
+            'paciente_nombres': paciente.paciente_nombres,
+            'paciente_apepaterno': paciente.paciente_apepaterno,
+            'paciente_apematerno': paciente.paciente_apematerno,
+            'paciente_celular': paciente.paciente_celular,
+            'fecha_nacimiento': paciente.fecha_nacimiento,
+            'paciente_sexo': paciente.paciente_sexo,
+        }
+        return JsonResponse(data)
+    except Paciente.DoesNotExist:
+        return JsonResponse({'error': 'Paciente no encontrado'}, status=404)
+
+## Modificar Paciente
+@login_required
+@csrf_exempt
+def modificar_paciente(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            paciente_id = data.get('id', '').strip()
+            ci = data.get('ci', '').strip()
+            nombres = data.get('nombres', '').strip()
+            apepat = data.get('apepat', '').strip()
+            apemat = data.get('apemat', '').strip()
+            celular = data.get('celular', '').strip()
+            fecha_nacimiento = data.get('fecha_nacimiento', '').strip()
+            sexo = data.get('sexo', '').strip().upper()
+
+
+            if not (paciente_id and ci and nombres and apepat and apemat and celular and fecha_nacimiento and sexo):
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+            
+            errores = []
+
+            if not re.match(r'^\d{7,10}$', ci):
+                errores.append('La cédula debe contener entre 7 y 10 dígitos.')
+            if not re.match(r'^\+58\d{10}$', celular):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
+                errores.append('El campo de nombres solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apepat):
+                errores.append('El campo de apellido paterno solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apemat):
+                errores.append('El campo de apellido materno solo debe contener letras.')
+
+            if errores:
+                return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
+
+            try:
+                paciente = Paciente.objects.get(id=paciente_id)
+                paciente.paciente_dni = ci
+                paciente.paciente_nombres = nombres
+                paciente.paciente_apepaterno = apepat
+                paciente.paciente_apematerno = apemat
+                paciente.paciente_celular = celular
+                paciente.fecha_nacimiento = fecha_nacimiento
+                paciente.paciente_sexo = sexo
+                paciente.save()
+                return JsonResponse({'status': 'success', 'message': 'Paciente modificado exitosamente.'})
+            except Paciente.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Paciente no encontrado.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+
+
+
 
 

@@ -5,11 +5,6 @@ function ModalRegistroAnalisis() {
     $("#modal_registro_analisis").modal('show');
 }
 
-// INICIALIZAR SELECT
-$(document).ready(function () {
-    $('.js-example-basic-single').select2();
-});
-
 //LISTAR ANÁLISIS
 function getCookie(name) {
     var cookieValue = null;

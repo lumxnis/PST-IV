@@ -9,13 +9,6 @@ function ModalRegistroUsuarios() {
 });
 }
 
-
-// INICIALIZAR SELECT
-$(document).ready(function () {
-    $('.js-example-basic-single').select2();
-});
-
-
 //LISTAR USUARIOS
 function getCookie(name) {
     var cookieValue = null;
