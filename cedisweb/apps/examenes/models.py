@@ -1,6 +1,7 @@
 from django.db import models
 from pacientes.models import Paciente
 from adminlite.models import Rol, Profile
+
 ##Análisis 
 class Analisis(models.Model):
     ANALISIS_ESTATUS_CHOICES = [
@@ -141,8 +142,7 @@ class Medico(models.Model):
     medico_direccion = models.CharField(max_length=100, null=True, blank=True)
     medico_movil = models.CharField(max_length=100, null=True, blank=True)
     medico_fenac = models.DateField(null=True, blank=True)
-    medico_nrodocumento = models.CharField(max_length=8, null=True, blank=True)
-    medico_colegiatura = models.CharField(max_length=8, null=True, blank=True)
+    medico_nrodocumento = models.CharField(max_length=12, null=True, blank=True)
     especialidad = models.ForeignKey(Especialidad, on_delete=models.RESTRICT, null=True, blank=True)
     usuario = models.ForeignKey(Profile, on_delete=models.RESTRICT, null=True, blank=True)
 

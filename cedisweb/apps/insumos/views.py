@@ -96,14 +96,25 @@ def cargar_provs(request):
 @csrf_exempt
 def registrar_insumo(request):
     if request.method == 'POST':
-        codigo = request.POST.get('c')
-        nombrep = request.POST.get('n')
-        stock = request.POST.get('s')
-        proveedor_cedula = request.POST.get('p')
-        descripcion = request.POST.get('d')
+        codigo = request.POST.get('c').strip().lower()
+        nombrep = request.POST.get('n').strip()
+        stock = request.POST.get('s').strip()
+        proveedor_cedula = request.POST.get('p').strip()
+        descripcion = request.POST.get('d').strip()
 
         if not all([codigo, nombrep, stock, proveedor_cedula, descripcion]):
             return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
+
+        errores = []
+
+        if Productos.objects.filter(codigo__iexact=codigo).exists():
+            errores.append('El código ya existe.')
+
+        if not stock.isdigit() or int(stock) <= 0:
+            errores.append('El stock debe ser un número entero positivo.')
+
+        if errores:
+            return JsonResponse({'success': False, 'message': '<br>'.join(errores)})
 
         try:
             proveedor = Proveedores.objects.get(cedula_prov=proveedor_cedula)
@@ -127,14 +138,27 @@ def registrar_insumo(request):
 @csrf_exempt
 def modificar_insumo(request):
     if request.method == 'POST':
-        codigo = request.POST.get('codigo')
-        nombrep = request.POST.get('nombrep')
-        stock = request.POST.get('stock')
-        proveedor_cedula = request.POST.get('proveedor')
-        descripcion = request.POST.get('descripcion')
+        codigo = request.POST.get('codigo').strip().lower()
+        nombrep = request.POST.get('nombrep').strip()
+        stock = request.POST.get('stock').strip()
+        proveedor_cedula = request.POST.get('proveedor').strip()
+        descripcion = request.POST.get('descripcion').strip()
 
         if not all([codigo, nombrep, stock, proveedor_cedula, descripcion]):
             return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+
+        # Validaciones adicionales
+        errores = []
+
+        if Productos.objects.filter(codigo__iexact=codigo).exists() and Productos.objects.get(codigo=codigo).codigo != codigo:
+            errores.append('El código ya existe.')
+
+        # Validar el stock (debe ser un número entero positivo)
+        if not stock.isdigit() or int(stock) <= 0:
+            errores.append('El stock debe ser un número entero positivo.')
+
+        if errores:
+            return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
 
         try:
             insumo = Productos.objects.get(codigo=codigo)
@@ -154,7 +178,6 @@ def modificar_insumo(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
-
 
 ##ELIMINAR INSUMOS
 @login_required

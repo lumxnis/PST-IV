@@ -3,13 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
-from .models import Analisis, Examen
+from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol
 from django.db.models import Q
 import json
 from django.utils import timezone
 from django.db import connection
 import datetime
-
+import os
+import re
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
 
 ##Examenes
 @login_required
@@ -152,7 +155,7 @@ def modificar_examen(request):
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-
+##########################################################################################################################################################
 
 ##Análisis
 @login_required
@@ -209,8 +212,6 @@ def listar_analisis(request):
         return JsonResponse(response)
     else:
         return JsonResponse({"error": "Método no permitido"}, status=405)
-
-
     
 ##Registrar Análisis
 @login_required
@@ -238,7 +239,6 @@ def registrar_analisis(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
-
 
 ##Obtener Estatus
 @login_required
@@ -286,21 +286,304 @@ def modificar_analisis(request):
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
 
+##########################################################################################################################################################
 
 ##Medico
 @login_required
 def medico(request):
     return render(request, 'examenes/medico.html')
 
+##Listar Medicos
+@login_required
+@csrf_exempt
+def listar_medicos(request):
+    if request.method == 'POST':
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM listar_medicos()")
+            rows = cursor.fetchall()
+            columns = [col[0] for col in cursor.description]
+            medicos = [dict(zip(columns, row)) for row in rows]
+        return JsonResponse({'data': medicos})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+##Cargar Especialidades
+@login_required
+@csrf_exempt
+def obtener_especialidades(request):
+    if request.method == 'GET':
+        especialidades = Especialidad.objects.all().values('especialidad_id', 'especialidad_nombre')
+        return JsonResponse({'status': 'success', 'data': list(especialidades)}, safe=False)
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+##Cargar Roles
+@login_required
+@csrf_exempt
+def cargar_roles(request):
+    if request.method == 'POST':
+        roles = Rol.objects.all().values('rol_id', 'rol_nombre')
+        return JsonResponse({'roles': list(roles)}, safe=False)
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+##Registrar Medico
+@login_required
+@csrf_exempt
+def registrar_medico(request):
+    if request.method == 'POST':
+        try:
+            cedula = request.POST.get('cedula', '').strip()
+            nombres = request.POST.get('nombres', '').strip()
+            apepat = request.POST.get('apepat', '').strip()
+            apemat = request.POST.get('apemat', '').strip()
+            telefono = request.POST.get('telefono', '').strip()
+            fecha_nacimiento = request.POST.get('fecha_nacimiento', '').strip()
+            especialidad_id = request.POST.get('especialidad_id', '').strip()
+            direccion = request.POST.get('direccion', '').strip()
+            usuario = request.POST.get('usuario', '').strip()
+            contrasena = request.POST.get('contrasena', '').strip()
+            email = request.POST.get('email', '').strip()
+            rol_id = request.POST.get('rol_id', '').strip()
+            foto = request.FILES.get('foto')
+
+            if not (cedula and nombres and apepat and apemat and telefono and fecha_nacimiento and especialidad_id and direccion and usuario and contrasena and email and rol_id):
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+
+            errores = []
+
+            if not re.match(r'^\d{7,10}$', cedula):
+                errores.append('La cédula debe contener entre 7 y 10 dígitos.')
+            if not re.match(r'^\+58\d{10}$', telefono):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
+                errores.append('El campo de nombres solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apepat):
+                errores.append('El campo de apellido paterno solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apemat):
+                errores.append('El campo de apellido materno solo debe contener letras.')
+            if Medico.objects.filter(medico_nrodocumento=cedula).exists():
+                errores.append('La cédula ya está registrada.')
+            if Profile.objects.filter(email=email).exists():
+                errores.append('El correo electrónico ya está registrado.')
+            if Profile.objects.filter(username=usuario).exists():
+                errores.append('El nombre de usuario ya está registrado.')
+
+            if errores:
+                return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
+
+            especialidad = Especialidad.objects.get(especialidad_id=especialidad_id)
+
+            if not foto:
+                nombrefoto = 'users/profile_default.png'
+            else:
+                nombrefoto = f'users/{usuario}.jpg'
+                ruta_foto = os.path.join('media', nombrefoto)
+                with open(ruta_foto, 'wb+') as destination:
+                    for chunk in foto.chunks():
+                        destination.write(chunk)
+
+            with transaction.atomic():
+                user = Profile.objects.create(
+                    username=usuario,
+                    password=make_password(contrasena),
+                    email=email,
+                    picture=nombrefoto  
+                )
+                user.rol_id = rol_id  
+                user.save()
+
+                medico = Medico.objects.create(
+                    medico_nrodocumento=cedula,
+                    medico_nombre=nombres,
+                    medico_apepat=apepat,
+                    medico_apemat=apemat,
+                    medico_movil=telefono,
+                    medico_fenac=fecha_nacimiento,
+                    especialidad=especialidad,
+                    medico_direccion=direccion,
+                    usuario=user  
+                )
+            return JsonResponse({'status': 'success', 'message': 'Médico registrado exitosamente.'})
+        except Especialidad.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'La especialidad seleccionada no existe.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+##Obtener Medico
+@login_required
+@csrf_exempt
+def obtener_medico(request):
+    medico_id = request.GET.get('id', None)
+    if medico_id is not None:
+        try:
+            medico = Medico.objects.get(medico_id=medico_id)
+            data = {
+                'medico_nrodocumento': medico.medico_nrodocumento,
+                'medico_nombre': medico.medico_nombre,
+                'medico_apepat': medico.medico_apepat,
+                'medico_apemat': medico.medico_apemat,
+                'medico_movil': medico.medico_movil,
+                'medico_fenac': medico.medico_fenac,
+                'medico_direccion': medico.medico_direccion,
+                'especialidad_id': medico.especialidad.especialidad_id
+            }
+            return JsonResponse(data)
+        except Medico.DoesNotExist:
+            return JsonResponse({'error': 'Médico no encontrado.'}, status=404)
+    return JsonResponse({'error': 'Solicitud inválida.'}, status=400)
+
+##Modificar Medico
+@login_required
+@csrf_exempt
+def modificar_medico(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            medico_id = data.get('medico_id')
+            medico_nrodocumento = data.get('medico_nrodocumento')
+            medico_nombre = data.get('medico_nombre')
+            medico_apepat = data.get('medico_apepat')
+            medico_apemat = data.get('medico_apemat')
+            medico_movil = data.get('medico_movil')
+            medico_fenac = data.get('medico_fenac')
+            medico_direccion = data.get('medico_direccion')
+            especialidad_id = data.get('especialidad_id')
+
+            if not (medico_nrodocumento and medico_nombre and medico_apepat and medico_apemat and medico_movil and medico_fenac and medico_direccion and especialidad_id):
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+
+            errores = []
+
+            if not re.match(r'^\d{7,10}$', medico_nrodocumento):
+                errores.append('La cédula debe contener entre 7 y 10 dígitos.')
+            if not re.match(r'^\+58\d{10}$', medico_movil):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', medico_nombre):
+                errores.append('El campo de nombres solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', medico_apepat):
+                errores.append('El campo de apellido paterno solo debe contener letras.')
+            if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', medico_apemat):
+                errores.append('El campo de apellido materno solo debe contener letras.')
+
+            if Medico.objects.filter(medico_nrodocumento=medico_nrodocumento).exclude(medico_id=medico_id).exists():
+                errores.append('La cédula ya está registrada.')
+
+            if errores:
+                return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
+
+            especialidad = Especialidad.objects.get(especialidad_id=especialidad_id)
+
+            medico = Medico.objects.get(medico_id=medico_id)
+            medico.medico_nrodocumento = medico_nrodocumento
+            medico.medico_nombre = medico_nombre
+            medico.medico_apepat = medico_apepat
+            medico.medico_apemat = medico_apemat
+            medico.medico_movil = medico_movil
+            medico.medico_fenac = medico_fenac
+            medico.medico_direccion = medico_direccion
+            medico.especialidad = especialidad
+            medico.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Médico modificado exitosamente.'})
+        except Medico.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Médico no encontrado.'}, status=404)
+        except Especialidad.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'La especialidad seleccionada no existe.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+##########################################################################################################################################################
+
 ##Especialidad
 @login_required
 def especialidad(request):
     return render(request, 'examenes/especialidad.html')
 
+##Listar Especialidad
+@login_required
+@csrf_exempt
+def listar_especialidades(request):
+    if request.method == 'POST':
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM listar_especialidades()")
+            rows = cursor.fetchall()
+
+            data = []
+            for row in rows:
+                data.append({
+                    "especialidad_id": row[0],
+                    "especialidad_nombre": row[1],
+                    "especialidad_fregistro": row[2],
+                    "especialidad_estatus": row[3],
+                })
+
+            return JsonResponse({"data": data})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+## Registrar Especialidad
+@login_required
+@csrf_exempt
+def registrar_especialidad(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        especialidad_nombre = data.get('especialidad_nombre').strip().upper()
+
+        if not especialidad_nombre:
+            return JsonResponse({'status': 'error', 'message': 'El nombre de la especialidad es obligatorio.'})
+
+        try:
+            Especialidad.objects.create(
+                especialidad_nombre=especialidad_nombre,
+                especialidad_fregistro=timezone.now(),  
+                especialidad_estatus='ACTIVO'
+            )
+            return JsonResponse({'status': 'success', 'message': 'Especialidad registrada exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+
+## Modificar Especialidad
+@login_required
+@csrf_exempt
+def modificar_especialidad(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        especialidad_id = data.get('especialidad_id')
+        especialidad_nombre = data.get('especialidad_nombre').strip().upper()
+        especialidad_estatus = data.get('especialidad_estatus')
+
+        if not especialidad_id or not especialidad_nombre or not especialidad_estatus:
+            return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+
+        try:
+            especialidad = Especialidad.objects.get(especialidad_id=especialidad_id)
+            especialidad.especialidad_nombre = especialidad_nombre
+            especialidad.especialidad_estatus = especialidad_estatus
+            especialidad.save()
+            return JsonResponse({'status': 'success', 'message': 'Especialidad modificada exitosamente.'})
+        except Especialidad.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'La especialidad no existe.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+##########################################################################################################################################################
+
 ##Realizar Examenes
 @login_required
 def realizar_examenes(request):
     return render(request, 'examenes/realizar_examenes.html')
+
+##########################################################################################################################################################
 
 ##Resultados de Examenes
 @login_required

@@ -213,90 +213,133 @@ function cargar_select_rol(selectElementId) {
 
 //Registrar Usuario
 function registrar_usuario() {
-    let usuario = document.getElementById('txt_usuario').value
-    let contra = document.getElementById('txt_contra').value
-    let email = document.getElementById('txt_email').value
-    let rol = document.getElementById('select_rol').value
-    let foto = document.getElementById('txt_foto').value
-    if (usuario.length == 0 || contra.length == 0 || email.length == 0 || rol.length == 0) {
-        validarInput("txt_usuario", "txt_contra", "txt_email");
-        return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos",
-            "warning")
+    const ids = {
+        usuario: 'txt_usuario',
+        contra: 'txt_contra',
+        email: 'txt_email'
+    };
+
+    if (!validarInput(ids, 'registro')) {
+        return;
     }
 
-    if (validarEmail(email)) {
+    const usuario = document.getElementById('txt_usuario').value.trim();
+    const contra = document.getElementById('txt_contra').value.trim();
+    const email = document.getElementById('txt_email').value.trim();
+    const rol = document.getElementById('select_rol').value;
+    const foto = document.getElementById('txt_foto').value;
 
-    } else {
-        return Swal.fire("Mensaje de Advertencia", "El formato del email ingresado es incorrecto",
-            "warning")
+    if (!validarEmail(email).valido) {
+        $("#" + ids.email).addClass("is-invalid");
+        return Swal.fire("Mensaje de Advertencia", "El formato del email ingresado es incorrecto", "warning");
     }
 
     let extension = foto.split('.').pop().toLowerCase();
-    let = nombrefoto = ""
-    let f = new Date()
+    let nombrefoto = "";
+    let f = new Date();
     if (foto.length > 0) {
         nombrefoto = "IMG" + f.getDate() + "" + (f.getMonth() + 1) + "" + f.getFullYear() + "" +
-            f.getHours() + "" + f.getMilliseconds() + "." + extension
+            f.getHours() + "" + f.getMilliseconds() + "." + extension;
     }
 
-    let formData = new FormData()
-    let fotoobject = $("#txt_foto")[0].files[0]
-    formData.append('u', usuario)
-    formData.append('c', contra)
-    formData.append('e', email)
-    formData.append('r', rol)
-    formData.append('nombrefoto', nombrefoto)
-    formData.append('foto', fotoobject)
+    let formData = new FormData();
+    let fotoobject = $("#txt_foto")[0].files[0];
+    formData.append('u', usuario);
+    formData.append('c', contra);
+    formData.append('e', email);
+    formData.append('r', rol);
+    formData.append('nombrefoto', nombrefoto);
+    formData.append('foto', fotoobject);
+
     $.ajax({
         url: '/registrar_usuario/',
         type: 'POST',
-        headers: { "X-CSRFToken": csrftoken },
+        headers: { "X-CSRFToken": getCookie('csrftoken') },
         data: formData,
         contentType: false,
         processData: false,
         success: function (resp) {
             if (resp.success) {
-                validarInput("txt_usuario", "txt_contra", "txt_email");
                 limpiar_modal_usuario();
                 Swal.fire("Mensaje de Éxito", resp.message, "success").
                     then((value) => {
                         $("#modal_registro_usuario").modal('hide');
                         tbl_usuario.ajax.reload();
-                    })
+                    });
             } else {
+                if (resp.message.includes("El usuario ya existe")) {
+                    $("#txt_usuario").addClass("is-invalid");
+                }
                 Swal.fire("Mensaje de Error", resp.message, "error");
             }
         }
-    })
-    return false
+    });
+    return false;
 }
 
-//Validar campos vacíos
-function validarInput(usuario, contra, email) {
-    Boolean(document.getElementById(usuario).value.length > 0) ? $("#" + usuario).
-        removeClass("is-invalid").addClass("is-valid") : $("#" + usuario).addClass("is-invalid")
-    if (contra != "") {
-        Boolean(document.getElementById(contra).value.length > 0) ? $("#" + contra).
-            removeClass("is-invalid").addClass("is-valid") : $("#" + contra).addClass("is-invalid")
-    }
-    Boolean(document.getElementById(email).value.length > 0) ? $("#" + email).
-        removeClass("is-invalid").addClass("is-valid") : $("#" + email).addClass("is-invalid")
+//VALIDACIONES//
+function validarUsuario(usuario) {
+    const regex = /^[a-zA-Z0-9_@.-]+$/;
+    return { valido: regex.test(usuario), mensaje: "El nombre de usuario solo debe contener letras, números, y los caracteres especiales _ @ . -" };
 }
 
-//Validar campos vacíos Contra
-function validarInputContra(contra_nueva, contra_repetir) {
-    Boolean(document.getElementById(contra_nueva).value.length > 0) ? $("#" + contra_nueva).
-        removeClass("is-invalid").addClass("is-valid") : $("#" + contra_nueva).addClass("is-invalid")
-
-    Boolean(document.getElementById(contra_repetir).value.length > 0) ? $("#" + contra_repetir).
-            removeClass("is-invalid").addClass("is-valid") : $("#" + contra_repetir).addClass("is-invalid")
+function validarContrasena(contra) {
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    return { valido: regex.test(contra), mensaje: "La contraseña debe tener al menos 8 caracteres, incluyendo una letra y un número." };
 }
 
-//Validar Email
 function validarEmail(email) {
-    var regex = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-    return regex.test(email);
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return { valido: regex.test(email), mensaje: "El formato del email es incorrecto." };
 }
+
+function validarInput(ids, contexto) {
+    const { usuario, contra, email } = ids;
+    let camposVacios = false;
+    let errores = [];
+
+    const validarCampo = (campoId, validarFn) => {
+        const campo = document.getElementById(campoId);
+        if (!campo) {
+            console.error(`El campo con ID ${campoId} no existe.`);
+            camposVacios = true;
+            return;
+        }
+        const valor = campo.value.trim();
+        if (valor.length === 0) {
+            camposVacios = true;
+            $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+        } else {
+            const resultado = validarFn(valor);
+            if (!resultado.valido) {
+                errores.push(resultado.mensaje);
+                $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+            } else {
+                $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+            }
+        }
+    };
+
+    validarCampo(usuario, validarUsuario);
+    validarCampo(email, validarEmail);
+    
+    if (contexto === 'registro') {
+        validarCampo(contra, validarContrasena);
+    }
+
+    if (camposVacios) {
+        Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
+        return false;
+    }
+
+    if (errores.length > 0) {
+        Swal.fire("Mensaje de Advertencia", errores.join("<br>"), "warning");
+        return false;
+    }
+
+    return true;
+}
+//VALIDACIONES//
 
 //Limpiar Campos
 function limpiar_modal_usuario() {
@@ -314,19 +357,23 @@ function limpiar_modal_contra() {
 
 //Modificar Usuarios
 function Modificar_Usuario() {
+    const ids = {
+        usuario: 'txt_usuario_editar',
+        email: 'txt_email_editar'
+    };
+
     let id = document.getElementById('txt_idusuario_editar').value;
     let rol = document.getElementById('select_rol_editar').value;
     let email = document.getElementById('txt_email_editar').value;
+    let usuario = document.getElementById('txt_usuario_editar').value;
 
-    if (id.length == 0 || email.length == 0 || rol.length == 0) {
-        validarInput("txt_usuario_editar", "", "txt_email_editar");
+    if (id.length == 0 || email.length == 0 || rol.length == 0 || usuario.length == 0) {
+        validarInput(ids, 'modificar');
         return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
     }
 
-    if (validarEmail(email)) {
-    } else {
-        return Swal.fire("Mensaje de Advertencia", "El formato del email ingresado es incorrecto",
-            "warning")
+    if (!validarInput(ids, 'modificar')) {
+        return;
     }
 
     fetch('/modificar_usuario/', {
@@ -338,24 +385,28 @@ function Modificar_Usuario() {
         body: new URLSearchParams({
             id: id,
             rol: rol,
-            email: email
+            email: email,
+            usuario: usuario
         })
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire("Modificación Exitosa", data.message, "success").
-                    then((value) => {
-                        $("#modal_editar_usuario").modal('hide');
-                        tbl_usuario.ajax.reload();
-                    })
-            } else {
-                Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            Swal.fire("Modificación Exitosa", data.message, "success").
+                then((value) => {
+                    $("#modal_editar_usuario").modal('hide');
+                    tbl_usuario.ajax.reload();
+                })
+        } else {
+            if (data.message.includes("El usuario ya existe")) {
+                $("#txt_usuario_editar").addClass("is-invalid");
             }
-        })
-        .catch(error => {
-            Swal.fire("Error", 'Error: ' + error, "error");
-        });
+            Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+        }
+    })
+    .catch(error => {
+        Swal.fire("Error", 'Error: ' + error, "error");
+    });
 }
 
 //Modificar Estatus
@@ -404,18 +455,25 @@ $('#tabla_usuario').on('click', '.contra', function () {
 })
 
 function Modificar_Contra_Usuario() {
-    var id = document.getElementById('idusuariocontra').value;
-    var nueva_contraseña = document.getElementById('txt_contra_nueva').value;
-    var repetir_contraseña = document.getElementById('txt_contra_repetir').value;
+    const id = document.getElementById('idusuariocontra').value;
+    const nueva_contraseña = document.getElementById('txt_contra_nueva').value;
+    const repetir_contraseña = document.getElementById('txt_contra_repetir').value;
 
     if (id.length == 0 || nueva_contraseña.length == 0 || repetir_contraseña.length == 0) {
-        validarInputContra("txt_contra_nueva", "txt_contra_repetir")
+        validarInputContra("txt_contra_nueva", "txt_contra_repetir");
         return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
     }
 
     if (nueva_contraseña !== repetir_contraseña) {
         Swal.fire("Error", "Las contraseñas no coinciden.", "error");
         return;
+    }
+
+    const contrasenaValidacion = validarContrasena(nueva_contraseña);
+    if (!contrasenaValidacion.valido) {
+        $("#" + 'txt_contra_nueva').addClass("is-invalid");
+        $("#" + 'txt_contra_repetir').addClass("is-invalid");
+        return Swal.fire("Mensaje de Advertencia", contrasenaValidacion.mensaje, "warning");
     }
 
     fetch('/cambiar_contraseña/', {
@@ -451,6 +509,13 @@ function Modificar_Contra_Usuario() {
     });
 }
 
+function validarInputContra(contra_nueva, contra_repetir) {
+    Boolean(document.getElementById(contra_nueva).value.length > 0) ? $("#" + contra_nueva)
+        .removeClass("is-invalid").addClass("is-valid") : $("#" + contra_nueva).addClass("is-invalid");
+
+    Boolean(document.getElementById(contra_repetir).value.length > 0) ? $("#" + contra_repetir)
+        .removeClass("is-invalid").addClass("is-valid") : $("#" + contra_repetir).addClass("is-invalid");
+}    
 
 
 

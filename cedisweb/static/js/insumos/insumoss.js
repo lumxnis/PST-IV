@@ -133,40 +133,67 @@ function limpiar_modal_insumo() {
     document.getElementById('txt_des').value = ""
 }
 
-//Validar campos vacíos
-function validarInput(codigo, nombrep, stock, descripcion) {
-    Boolean(document.getElementById(codigo).value.length > 0) ? $("#" + codigo).
-        removeClass("is-invalid").addClass("is-valid") : $("#" + codigo).addClass("is-invalid")
+// Validar campos vacíos
+function validarInput(codigo, nombrep, stock, descripcion, existeCodigo) {
+    let camposVacios = false;
+    let errores = [];
 
-    Boolean(document.getElementById(nombrep).value.length > 0) ? $("#" + nombrep).
-            removeClass("is-invalid").addClass("is-valid") : $("#" + nombrep).addClass("is-invalid")
+    const validarCampo = (campoId, valor, validarFn) => {
+        if (valor.length === 0) {
+            $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+            camposVacios = true;
+        } else {
+            const resultado = validarFn(valor);
+            if (!resultado.valido) {
+                $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+                errores.push(resultado.mensaje);
+            } else {
+                $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+            }
+        }
+    };
 
-    Boolean(document.getElementById(stock).value.length > 0) ? $("#" + stock).
-            removeClass("is-invalid").addClass("is-valid") : $("#" + stock).addClass("is-invalid")
+    validarCampo(codigo, document.getElementById(codigo).value, valor => ({valido: valor.length > 0, mensaje: "El código no puede estar vacío"}));
+    validarCampo(nombrep, document.getElementById(nombrep).value, valor => ({valido: valor.length > 0, mensaje: "El nombre no puede estar vacío"}));
+    validarCampo(stock, document.getElementById(stock).value, valor => ({valido: valor.length > 0 && !isNaN(valor) && parseInt(valor) > 0, mensaje: "El stock debe ser un número positivo"}));
+    validarCampo(descripcion, document.getElementById(descripcion).value, valor => ({valido: valor.length > 0, mensaje: "La descripción no puede estar vacía"}));
 
-    Boolean(document.getElementById(descripcion).value.length > 0) ? $("#" + descripcion).
-            removeClass("is-invalid").addClass("is-valid") : $("#" + descripcion).addClass("is-invalid")
-}
-
-//REGISTRAR INSUMOS
-function registrar_insumos() {
-    let codigo = document.getElementById('txt_cod').value
-    let nombrep = document.getElementById('txt_nombre').value
-    let stock = document.getElementById('txt_stock').value
-    let proveedor = document.getElementById('select_prov').value
-    let descripcion = document.getElementById('txt_des').value
-    if (codigo.length == 0 || nombrep.length == 0 || stock.length == 0 || proveedor.length == 0 || descripcion.length == 0) {
-        validarInput("txt_cod", "txt_nombre", "txt_stock", "txt_des");
-        return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos",
-            "warning")
+    if (existeCodigo) {
+        $("#" + codigo).removeClass("is-valid").addClass("is-invalid");
+        errores.push("El código ya existe");
     }
 
-    let formData = new FormData()
-    formData.append('c', codigo)
-    formData.append('n', nombrep)
-    formData.append('s', stock)
-    formData.append('p', proveedor)
-    formData.append('d', descripcion)
+    if (camposVacios) {
+        Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
+    }
+
+    if (errores.length > 0) {
+        Swal.fire("Mensaje de Error", errores.join("<br>"), "error");
+        return false;
+    }
+
+    return true;
+}
+
+// REGISTRAR INSUMOS
+function registrar_insumos() {
+    let codigo = document.getElementById('txt_cod').value;
+    let nombrep = document.getElementById('txt_nombre').value;
+    let stock = document.getElementById('txt_stock').value;
+    let proveedor = document.getElementById('select_prov').value;
+    let descripcion = document.getElementById('txt_des').value;
+
+    if (!validarInput('txt_cod', 'txt_nombre', 'txt_stock', 'txt_des', false)) {
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append('c', codigo);
+    formData.append('n', nombrep);
+    formData.append('s', stock);
+    formData.append('p', proveedor);
+    formData.append('d', descripcion);
+
     $.ajax({
         url: '/registrar_insumo/',
         type: 'POST',
@@ -176,21 +203,22 @@ function registrar_insumos() {
         processData: false,
         success: function (resp) {
             if (resp.success) {
-                validarInput("txt_cod", "txt_nombre", "txt_stock", "txt_des");
                 limpiar_modal_insumo();
-                Swal.fire("Mensaje de Éxito", resp.message, "success").
-                    then((value) => {
-                        $("#modal_registro_insumo").modal('hide');
-                        tbl_insumo.ajax.reload();
-                    })
+                Swal.fire("Mensaje de Éxito", resp.message, "success").then((value) => {
+                    $("#modal_registro_insumo").modal('hide');
+                    tbl_insumo.ajax.reload();
+                });
             } else {
-                Swal.fire("Mensaje de Error", resp.message, "error");
+                if (resp.message.includes("El código ya existe")) {
+                    validarInput('txt_cod', 'txt_nombre', 'txt_stock', 'txt_des', true);
+                } else {
+                    Swal.fire("Mensaje de Error", resp.message, "error");
+                }
             }
         }
-    })
-    return false
+    });
+    return false;
 }
-
 
 //MODAL MODIFICAR INSUMO
 $(document).ready(function () {
@@ -231,9 +259,8 @@ function Modificar_Insumo() {
     let proveedor = document.getElementById('select_prov_editar').value;
     let descripcion = document.getElementById('txt_des_editar').value;
 
-    if (codigo.length == 0 || nombrep.length == 0 || stock.length == 0 || proveedor.length == 0 || descripcion.length == 0) {
-        validarInput("txt_cod_editar", "txt_nombre_editar", "txt_stock_editar", "txt_des_editar");
-        return Swal.fire("Mensaje de Advertencia", "Tiene algunos campos vacíos", "warning");
+    if (!validarInput("txt_cod_editar", "txt_nombre_editar", "txt_stock_editar", "txt_des_editar", false)) {
+        return;
     }
 
     let formData = new FormData();
@@ -265,7 +292,11 @@ function Modificar_Insumo() {
                 tbl_insumo.ajax.reload();
             });
         } else {
-            Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+            if (data.message.includes("El código ya existe")) {
+                validarInput("txt_cod_editar", "txt_nombre_editar", "txt_stock_editar", "txt_des_editar", true);
+            } else {
+                Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+            }
         }
     })
     .catch(error => {

@@ -1,8 +1,14 @@
+{% load static %}
+<script src="{% static 'js/medico/especialidades.js' %}"></script>
+<script>
+    listar_especialidades()
+</script>
+
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0"><b>Gestión Especialidad</b></h1>
+                <h1 class="m-0"><b>GESTIÓN ESPECIALIDAD</b></h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -13,3 +19,94 @@
         </div>
     </div>
 </div>
+<div class="col-lg-12">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><b>Listado de Especialidades</b></h3> <button class="btn btn-danger btn-sm float-right"
+                onclick="ModalRegistroEspecialidad()"> <i class="fas fa-plus"> Nuevo Registro</i></button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-14 table responsive">
+                    <table id="tabla_especialidades" class="display">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Especialidad</th>
+                                <th>Fecha de Registro</th>
+                                <th>Estatus</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registro Rol -->
+<div class="modal fade" id="modal_registro_especialidad" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Registro Especialidad</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="">Especialidad</label>
+                        <input type="text" id="txt_especialidad" placeholder="Ingresar nombre de la especialidad" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="registrar_especialidad()
+                ">Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal-->
+
+<!-- Modal Editar Rol -->
+<div class="modal fade" id="modal_editar_especialidad" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Modificar Especialidad</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+
+                    <div class="col-12">
+                        <label for="">ID</label>
+                        <input type="text" id="txt_idespecialidad_editar" class="form-control" disabled><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Especialidad</label>
+                        <input type="text" id="txt_especialidad_editar" class="form-control"><br>
+                    </div>
+                    <div class="col-12">
+                        <label for="">Estatus</label>
+                        <select class="form-control" name="" id="select_estatus_editar" style="width: 100%"><br>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="modificar_especialidad()
+                ">Modificar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal-->

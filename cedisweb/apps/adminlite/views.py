@@ -10,12 +10,13 @@ from django.core.paginator import Paginator
 from .models import Profile, Rol
 from django.db.models import Q, F
 from django.db import connection
-import os
+import os, re
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from datetime import datetime
 import json
+
 
 
 #Inicio
@@ -173,6 +174,7 @@ def cargar_roles(request):
 
 ## Registrar Usuario
 @login_required
+@csrf_exempt
 def registrar_usuario(request):
     if request.method == 'POST':
         try:
@@ -183,6 +185,24 @@ def registrar_usuario(request):
             nombrefoto = request.POST.get('nombrefoto')
             foto = request.FILES.get('foto')
 
+            # Validaciones
+            errores = []
+            
+            if not usuario or not contra or not email or not rol:
+                return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
+            
+            if not re.match(r'^[a-zA-Z0-9_@.-]+$', usuario):
+                errores.append('El nombre de usuario solo debe contener letras, números, y los caracteres especiales _ @ . -')
+
+            if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', contra):
+                errores.append('La contraseña debe tener al menos 8 caracteres, incluyendo una letra y un número.')
+            
+            if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+                errores.append('El formato del email es incorrecto.')
+
+            if errores:
+                return JsonResponse({'success': False, 'message': '<br>'.join(errores)})
+            
             contra_encriptada = make_password(contra)
 
             if not foto:
@@ -216,17 +236,31 @@ def modificar_usuario(request):
         id = request.POST.get('id')
         email = request.POST.get('email')
         rol = request.POST.get('rol')
+        usuario = request.POST.get('usuario')
         
         try:
-            print(f"Received data: id={id}, email={email}, rol={rol}")
 
+            # Validaciones
+            errores = []
+            
+            if not id or not email or not rol or not usuario:
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
+            
+            if not re.match(r'^[a-zA-Z0-9_@.-]+$', usuario):
+                errores.append('El nombre de usuario solo debe contener letras, números, y los caracteres especiales _ @ . -')
+            
+            if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+                errores.append('El formato del email es incorrecto.')
+
+            if errores:
+                return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
+            
             with connection.cursor() as cursor:
                 cursor.callproc('modificar_usuario', [id, email, rol])
             
             return JsonResponse({'status': 'success', 'message': 'Datos actualizados!'})
-        
-        except Exception as e:
 
+        except Exception as e:
             print(f"Error during procedure call: {str(e)}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
@@ -368,7 +402,7 @@ def modificar_rol(request):
         try:
             data = json.loads(request.body)
             rol_id = data.get('rol_id')
-            rol_nombre = data.get('rol_nombre')
+            rol_nombre = data.get('rol_nombre').strip().upper()
             rol_estatus = data.get('rol_estatus')
 
             if not rol_id or not rol_nombre or not rol_estatus:
