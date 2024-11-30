@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
-from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol
+from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol, RealizarExamen
 from django.db.models import Q
 import json
 from django.utils import timezone
@@ -13,6 +13,8 @@ import os
 import re
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from django.db.models import F, Value, CharField
+from django.db.models.functions import Concat
 
 ##Examenes
 @login_required
@@ -230,7 +232,8 @@ def registrar_analisis(request):
             
             nuevo_analisis = Analisis.objects.create(
                 analisis_nombre=analisis_nombre,
-                analisis_fregistro=timezone.now()  
+                analisis_fregistro=timezone.now(),
+                analisis_estatus='ACTIVO'
             )
             nuevo_analisis.save()
 
@@ -320,11 +323,10 @@ def obtener_especialidades(request):
 ##Cargar Roles
 @login_required
 @csrf_exempt
-def cargar_roles(request):
+def cargar_roles_medico(request):
     if request.method == 'POST':
-        roles = Rol.objects.all().values('rol_id', 'rol_nombre')
+        roles = Rol.objects.filter(rol_id=3).values('rol_id', 'rol_nombre')
         return JsonResponse({'roles': list(roles)}, safe=False)
-
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 ##Registrar Medico
@@ -582,6 +584,153 @@ def modificar_especialidad(request):
 @login_required
 def realizar_examenes(request):
     return render(request, 'examenes/realizar_examenes.html')
+
+##Registro Realizar Examenes
+def registro_realizar_examenes(request):
+    return render(request, 'examenes/realizar_examenes_registro.html')
+
+##Listar Realizar Examenes
+@login_required
+@csrf_exempt
+def listar_realizar_examen(request):
+    if request.method == 'POST':
+        draw = int(request.POST.get('draw', 1))
+        start = int(request.POST.get('start', 0))
+        length = int(request.POST.get('length', 10))
+        search_value = request.POST.get('search[value]', '')
+        order_column_index = int(request.POST.get('order[0][column]', 0))
+        order_column_name = request.POST.get(f'columns[{order_column_index}][data]', 'id')
+        order_direction = request.POST.get('order[0][dir]', 'asc')
+
+        valid_columns = {
+            'id': 'id',
+            'paciente': 'paciente',
+            'medico': 'medico',
+            'realizarexamen_estatus': 'realizarexamen_estatus',
+            'realizarexamen_fregistro': 'realizarexamen_fregistro',
+            'username': 'username',
+            'paciente_id' : 'paciente_id'
+        }
+
+        order_column = valid_columns.get(order_column_name, 'id')
+        if order_direction == 'desc':
+            order_column = '-' + order_column
+
+        queryset = RealizarExamen.objects.select_related('paciente_id', 'medico_id').annotate(
+            paciente=Concat('paciente_id__paciente_apepaterno', Value(' '), 'paciente_id__paciente_nombres', output_field=CharField()),
+            medico=Concat('medico_id__medico_apepat', Value(' '), 'medico_id__medico_nombre', output_field=CharField()),
+            username=F('usuario_id__username'),
+            paciente_dni=F('paciente_id__paciente_dni')
+        )
+
+        total_records = queryset.count()
+
+        if search_value:
+            queryset = queryset.filter(
+                Q(paciente__icontains=search_value) |
+                Q(medico__icontains=search_value) |
+                Q(realizarexamen_estatus__icontains=search_value) |
+                Q(realizarexamen_fregistro__icontains=search_value) |
+                Q(username__icontains=search_value) |
+                Q(paciente_dni__icontains=search_value)
+            )
+
+        total_filtered = queryset.count()
+        queryset = queryset.order_by(order_column)[start:start + length]
+
+        data = list(queryset.values('id', 'realizarexamen_estatus', 'realizarexamen_fregistro', 'paciente', 'medico', 'username', 'paciente_dni'))
+
+        response = {
+            "draw": draw,
+            "recordsTotal": total_records,
+            "recordsFiltered": total_filtered,
+            "data": data,
+        }
+        return JsonResponse(response)
+    else:
+        response = {'status': 'error', 'message': 'Método no permitido'}
+        return JsonResponse(response, status=405)
+
+## Cargar_Select_Examen
+@csrf_exempt
+def obtener_examenes_por_analisis(request):
+    if request.method == 'POST':
+        analisis_id = request.POST.get('id')
+        try:
+            analisis = Analisis.objects.get(id=analisis_id)
+            examenes = Examen.objects.filter(analisis_id=analisis.id)
+            examenes_options = [[examen.id, examen.examen_nombre] for examen in examenes]
+            return JsonResponse({'status': 'success', 'data': examenes_options})
+        except Analisis.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Análisis no encontrado'})
+    print("Método no permitido")  
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+
+##Registro Realizar Examen
+@login_required
+@csrf_exempt
+def realizar_examen_registro(request):
+    if request.method == 'POST':
+        try:
+            print("Solicitud recibida con método POST")
+            print("Cuerpo de la solicitud:", request.body)
+
+            if request.body:
+                data = json.loads(request.body)
+                print("Datos recibidos:", data)
+
+                idpaciente = data.get('idpaciente')
+                idusuario = data.get('idusuario')
+                idmedico = data.get('idmedico')
+
+                if not idpaciente or not idmedico or not idusuario:
+                    return JsonResponse({'status': 'error', 'message': 'Debe seleccionar a un paciente, un médico y un usuario.'}, status=400)
+
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT sp_registrar_realizar_examen(%s, %s, %s)", [idpaciente, idusuario, idmedico])
+                    new_id = cursor.fetchone()[0]
+
+                return JsonResponse({'id': new_id, 'status': 'success', 'message': 'Examen registrado exitosamente.'}, content_type="application/json")
+            else:
+                return JsonResponse({'status': 'error', 'message': 'El cuerpo de la solicitud está vacío.'}, status=400)
+
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Error de formato JSON.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    else:
+        print("Método no permitido: Se esperaba POST, pero se recibió", request.method)
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+###Registro Realizar Examen Detalle
+@login_required
+@csrf_exempt
+def realizar_examen_detalle(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            idexamen = data.get('id')
+            examenes = data.get('examen', '').split(',')
+            analisis = data.get('analisis', '').split(',')
+
+            if not idexamen or not examenes or not analisis:
+                return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'}, status=400)
+            
+            if len(examenes) != len(analisis):
+                return JsonResponse({'status': 'error', 'message': 'La cantidad de exámenes y análisis debe ser igual.'}, status=400)
+            
+            with connection.cursor() as cursor:
+                for i in range(len(examenes)):
+                    cursor.execute("SELECT sp_registrar_detalle_realizar_examen(%s, %s, %s)", [idexamen, examenes[i], analisis[i]])
+
+            return JsonResponse({'status': 'success', 'message': 'Examen registrado exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
 
 ##########################################################################################################################################################
 

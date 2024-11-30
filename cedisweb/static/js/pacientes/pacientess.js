@@ -310,10 +310,10 @@ $('#tabla_pacientes').on('click', '.editar', function () {
 
             cargarSexo(data.paciente_sexo);
             $("#txt_ci_editar").attr("data-id", paciente_id);
+            document.getElementById('div_mensaje_error_editar').innerHTML = '';
         }
     })
     .catch(error => console.error('Error:', error));
-
     $('#modal_editar_paciente').modal('show');
     $('#modal_editar_paciente').modal({ backdrop: 'static', keyboard: false });
 });

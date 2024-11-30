@@ -48,7 +48,7 @@ function listar_usuarios() {
             {
                 "data": "picture",
                 render: function (data, type, row) {
-                    return '<img class="img-responsive" style="width:40px" src="/media/' + data + '">';
+                    return '<img class="img-responsive" style="width:55px; border-radius:50%;" src="/media/' + data + '">';
                 }
             },
             {
@@ -216,7 +216,8 @@ function registrar_usuario() {
     const ids = {
         usuario: 'txt_usuario',
         contra: 'txt_contra',
-        email: 'txt_email'
+        email: 'txt_email',
+        foto: 'txt_foto'
     };
 
     if (!validarInput(ids, 'registro')) {
@@ -293,8 +294,22 @@ function validarEmail(email) {
     return { valido: regex.test(email), mensaje: "El formato del email es incorrecto." };
 }
 
+function validarFoto(fotoInputId) {
+    const fileInput = document.getElementById(fotoInputId);
+    const file = fileInput.files[0];
+
+    if (file) {
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!validImageTypes.includes(file.type)) {
+            return { valido: false, mensaje: "El archivo seleccionado no es una foto válida. Solo se permiten archivos JPEG, PNG y GIF." };
+        }
+    }
+
+    return { valido: true, mensaje: "" };
+}
+
 function validarInput(ids, contexto) {
-    const { usuario, contra, email } = ids;
+    const { usuario, contra, email, foto } = ids;
     let camposVacios = false;
     let errores = [];
 
@@ -306,11 +321,11 @@ function validarInput(ids, contexto) {
             return;
         }
         const valor = campo.value.trim();
-        if (valor.length === 0) {
+        if (valor.length === 0 && campoId !== foto) {
             camposVacios = true;
             $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
         } else {
-            const resultado = validarFn(valor);
+            const resultado = (campoId === foto) ? validarFoto(campoId) : validarFn(valor);
             if (!resultado.valido) {
                 errores.push(resultado.mensaje);
                 $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
@@ -325,6 +340,7 @@ function validarInput(ids, contexto) {
     
     if (contexto === 'registro') {
         validarCampo(contra, validarContrasena);
+        validarCampo(foto, validarFoto);
     }
 
     if (camposVacios) {

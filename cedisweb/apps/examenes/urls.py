@@ -21,6 +21,7 @@ urlpatterns = [
     ##Medico
     path('medico/', views.medico, name='medico'),
     path('listar_medicos/', views.listar_medicos, name='listar_medicos'),
+    path('cargar_roles_medico/', views.cargar_roles_medico , name='cargar_roles_medico'),
     path('obtener_especialidades/', views.obtener_especialidades, name='obtener_especialidades'),
     path('registrar_medico/', views.registrar_medico, name='registrar_medico'),
     path('obtener_medico/', views.obtener_medico, name='obtener-medico'),
@@ -34,6 +35,11 @@ urlpatterns = [
 
     ##Realizar_Examenes
     path('realizar_examenes/', views.realizar_examenes, name='realizar_examenes'),
+    path('listar_realizar_examen/', views.listar_realizar_examen, name='listar_realizar_examen'),
+    path('registro_realizar_examenes/', views.registro_realizar_examenes, name='registro_realizar_examenes'),
+    path('obtener_examenes_por_analisis/', views.obtener_examenes_por_analisis, name='obtener_examenes_por_analisis'),
+    path('realizar_examen_registro/', views.realizar_examen_registro, name='realizar_examen_registro'),
+    path('realizar_examen_detalle/', views.realizar_examen_detalle, name='realizar_examen_detalle'),
 
     ##Resultados_Examenes
     path('resultados_examenes/', views.resultados_examenes, name='resultados_examenes'),

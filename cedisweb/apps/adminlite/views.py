@@ -17,8 +17,6 @@ from django.conf import settings
 from datetime import datetime
 import json
 
-
-
 #Inicio
 def home(request):
     return render(request, 'inicio/home.html')
@@ -39,40 +37,18 @@ from .forms import CustomUserCreationForm
 from django.conf import settings
 import os
 
-# Register
-def register(request):
-    data = {
-        'form': CustomUserCreationForm()
-    }
-
-    if request.method == 'POST':
-        user_creation_form = CustomUserCreationForm(data=request.POST, files=request.FILES)
-
-        if user_creation_form.is_valid():
-            user = user_creation_form.save(commit=False)
-            if 'picture' not in request.FILES or not request.FILES['picture']:
-                user.picture = os.path.join('users', 'profile_default.png')
-            user.save()
-
-            user = authenticate(username=user_creation_form.cleaned_data['username'], password=user_creation_form.cleaned_data['password1'])
-            login(request, user)
-            return redirect('home')
-        else:
-            data['form'] = user_creation_form
-
-    return render(request, 'registration/register.html', data)
-
 
 ##Dashboard
 @login_required
 def index(request):
-    return render(request, 'adminlite/index.html')
+    user_id = request.session.get('S_IDUSUARIO')
+    return render(request, 'adminlite/index.html', {'user_id': user_id})
 
 ## Profile
 @login_required 
 def profile(request):
     return render(request, 'adminlite/profile.html')
-
+    
 #Edit Profile
 @login_required
 def edit_profile(request):
@@ -156,7 +132,6 @@ def listar_usuarios(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-
 ## Cargar Roles
 @login_required
 def cargar_roles(request):
@@ -165,14 +140,21 @@ def cargar_roles(request):
             cursor.execute("SELECT * FROM sp_listar_select_rol()")
             roles = cursor.fetchall()
 
-        roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles]
+        roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles if rol[0] != 3]
 
         return JsonResponse({'roles': roles_list})
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=400)
-    
 
 ## Registrar Usuario
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.db import connection
+from django.contrib.auth.hashers import make_password
+import os
+import re
+
 @login_required
 @csrf_exempt
 def registrar_usuario(request):
@@ -187,30 +169,32 @@ def registrar_usuario(request):
 
             # Validaciones
             errores = []
-            
+
             if not usuario or not contra or not email or not rol:
                 return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
-            
+
             if not re.match(r'^[a-zA-Z0-9_@.-]+$', usuario):
                 errores.append('El nombre de usuario solo debe contener letras, números, y los caracteres especiales _ @ . -')
 
             if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', contra):
                 errores.append('La contraseña debe tener al menos 8 caracteres, incluyendo una letra y un número.')
-            
+
             if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
                 errores.append('El formato del email es incorrecto.')
 
             if errores:
                 return JsonResponse({'success': False, 'message': '<br>'.join(errores)})
-            
+
             contra_encriptada = make_password(contra)
 
             if not foto:
                 nombrefoto = 'users/profile_default.png'
             else:
-                with open(os.path.join('media/users', nombrefoto), 'wb+') as destination:
+                file_path = os.path.join('media/users', nombrefoto)
+                with open(file_path, 'wb+') as destination:
                     for chunk in foto.chunks():
                         destination.write(chunk)
+                nombrefoto = os.path.join('users', nombrefoto)
 
             with connection.cursor() as cursor:
                 cursor.callproc('sp_registrar_usuario', [usuario, contra_encriptada, email, rol, nombrefoto])
@@ -226,7 +210,6 @@ def registrar_usuario(request):
             return JsonResponse({'success': False, 'message': str(e)})
     else:
         return JsonResponse({'success': False, 'message': 'Método de solicitud no permitido.'})
-    
 
 ## Modificar Usuario
 @login_required

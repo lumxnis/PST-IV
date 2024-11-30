@@ -118,7 +118,7 @@
             <li class="nav-item">
               <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'medico' %}')">
                 <i class="fa fa-user-md" aria-hidden="true" style="margin-right: 8px;"></i>
-                <p>Medico</p>
+                <p>Médico</p>
               </a>
             </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
@@ -147,8 +147,8 @@
                 <p>Resultados de Examen</p>
               </a>
             </li>
-            <br>
             <b>
+              <br>
               <li class="nav-header">CONFIGURACIÓN</li>
             </b>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
@@ -182,15 +182,14 @@
               </a>
             </li>
           </ul>
+          <input type="text" value="{{ user_id }}" id="txt_idprincipal" hidden disabled>
         </nav>
         <!-- /.sidebar-menu -->
       </div>
       <!-- /.sidebar -->
     </aside>
 
-
     <div class="content-wrapper" id="contenido_principal">
-
       <!-- Content Header (Page header) -->
       <div class="content-header">
         <div class="container-fluid">
@@ -277,6 +276,8 @@
         $(this).addClass("active")
       })
     })
+    
+    var urlRegistroRealizarExamenes = "{% url 'realizar_examenes' %}";
   </script>
 
 

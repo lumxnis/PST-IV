@@ -84,7 +84,6 @@ def listar_proveedores(request):
 
             return JsonResponse(response)
         except Exception as e:
-            print("Error: ", str(e))
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({"error": "Método no permitido"}, status=405)
 

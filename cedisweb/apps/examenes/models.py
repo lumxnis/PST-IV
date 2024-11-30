@@ -40,23 +40,64 @@ class Examen(models.Model):
     def __str__(self):
         return self.examen_nombre
     
+##Especialidad
+class Especialidad(models.Model):
+    ESPECIALIDAD_ESTATUS_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('INACTIVO', 'Inactivo'),
+    ]
+    
+    especialidad_id = models.AutoField(primary_key=True)
+    especialidad_nombre = models.CharField(max_length=100, null=True, blank=True)
+    especialidad_fregistro = models.DateField(null=True, blank=True)
+    especialidad_estatus = models.CharField(max_length=8, choices=ESPECIALIDAD_ESTATUS_CHOICES, null=True, blank=True)
+
+    class Meta:
+        db_table = 'especialidad'
+        verbose_name = 'Especialidad'
+        verbose_name_plural = 'Especialidades'
+
+    def __str__(self):
+        return self.especialidad_nombre or 'Especialidad'
+    
+## Médico 
+class Medico(models.Model):
+    medico_id = models.AutoField(primary_key=True)
+    medico_nombre = models.CharField(max_length=100, null=True, blank=True)
+    medico_apepat = models.CharField(max_length=100, null=True, blank=True)
+    medico_apemat = models.CharField(max_length=100, null=True, blank=True)
+    medico_direccion = models.CharField(max_length=100, null=True, blank=True)
+    medico_movil = models.CharField(max_length=100, null=True, blank=True)
+    medico_fenac = models.DateField(null=True, blank=True)
+    medico_nrodocumento = models.CharField(max_length=12, null=True, blank=True)
+    especialidad = models.ForeignKey(Especialidad, on_delete=models.RESTRICT, null=True, blank=True)
+    usuario = models.ForeignKey(Profile, on_delete=models.RESTRICT, null=True, blank=True)
+
+    class Meta:
+        db_table = 'medico'
+        verbose_name = 'Médico'
+        verbose_name_plural = 'Médicos'
+
+    def __str__(self):
+        return f'{self.medico_nombre} {self.medico_apepat} {self.medico_apemat}'
+
+    
 ## Realizar Exámen
 class RealizarExamen(models.Model):
     REALIZAREXAMEN_ESTATUS_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
         ('FINALIZADO', 'Finalizado'),
     ]
-
-    paciente = models.ForeignKey(Paciente, on_delete=models.RESTRICT, null=True, blank=True)
+    paciente_id = models.ForeignKey(Paciente, on_delete=models.RESTRICT, null=True, blank=True)
+    usuario_id = models.ForeignKey(Profile, on_delete=models.RESTRICT, null=True, blank=True )
     realizarexamen_estatus = models.CharField(max_length=10, choices=REALIZAREXAMEN_ESTATUS_CHOICES, null=True, blank=True)
-    realizarexamen_indica = models.CharField(max_length=255, null=True, blank=True)
-    realizarexamen_nomindica = models.CharField(max_length=255, null=True, blank=True)
+    medico_id = models.ForeignKey(Medico, on_delete=models.RESTRICT, null=True, blank=True)
     realizarexamen_fregistro = models.DateField(null=True, blank=True)
 
     class Meta:
         db_table = 'realizar_examen'
         indexes = [
-            models.Index(fields=['paciente']),
+            models.Index(fields=['paciente_id']),
         ]
 
     def __str__(self):
@@ -67,7 +108,7 @@ class RealizarExamen(models.Model):
 class RealizarExamenDetalle(models.Model):
     examen = models.ForeignKey(Examen, on_delete=models.RESTRICT, null=True, blank=True)
     analisis = models.ForeignKey(Analisis, on_delete=models.RESTRICT, null=True, blank=True)
-    realizarexamen = models.ForeignKey('RealizarExamen', on_delete=models.RESTRICT, null=True, blank=True)
+    realizarexamen = models.ForeignKey(RealizarExamen, on_delete=models.RESTRICT, null=True, blank=True)
 
     class Meta:
         db_table = 'realizar_examen_detalle'
@@ -112,47 +153,9 @@ class ResultadoDetalle(models.Model):
     def __str__(self):
         return f"Resultado Detalle {self.resuldetalle_id}"
 
-##Especialidad
-class Especialidad(models.Model):
-    ESPECIALIDAD_ESTATUS_CHOICES = [
-        ('ACTIVO', 'Activo'),
-        ('INACTIVO', 'Inactivo'),
-    ]
-    
-    especialidad_id = models.AutoField(primary_key=True)
-    especialidad_nombre = models.CharField(max_length=100, null=True, blank=True)
-    especialidad_fregistro = models.DateField(null=True, blank=True)
-    especialidad_estatus = models.CharField(max_length=8, choices=ESPECIALIDAD_ESTATUS_CHOICES, null=True, blank=True)
-
-    class Meta:
-        db_table = 'especialidad'
-        verbose_name = 'Especialidad'
-        verbose_name_plural = 'Especialidades'
-
-    def __str__(self):
-        return self.especialidad_nombre or 'Especialidad'
 
 
-## Médico 
-class Medico(models.Model):
-    medico_id = models.AutoField(primary_key=True)
-    medico_nombre = models.CharField(max_length=100, null=True, blank=True)
-    medico_apepat = models.CharField(max_length=100, null=True, blank=True)
-    medico_apemat = models.CharField(max_length=100, null=True, blank=True)
-    medico_direccion = models.CharField(max_length=100, null=True, blank=True)
-    medico_movil = models.CharField(max_length=100, null=True, blank=True)
-    medico_fenac = models.DateField(null=True, blank=True)
-    medico_nrodocumento = models.CharField(max_length=12, null=True, blank=True)
-    especialidad = models.ForeignKey(Especialidad, on_delete=models.RESTRICT, null=True, blank=True)
-    usuario = models.ForeignKey(Profile, on_delete=models.RESTRICT, null=True, blank=True)
 
-    class Meta:
-        db_table = 'medico'
-        verbose_name = 'Médico'
-        verbose_name_plural = 'Médicos'
-
-    def __str__(self):
-        return f'{self.medico_nombre} {self.medico_apepat} {self.medico_apemat}'
 
 
 

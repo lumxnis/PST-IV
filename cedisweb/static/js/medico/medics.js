@@ -3,6 +3,7 @@ function ModalRegistroMedico() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     cargarEspecialidadesSelect('select_especialidad')
     cargar_select_rol('select_rol')
+    document.getElementById('div_mensaje_error').innerHTML = '';
     $("#modal_registro_medico").modal({ backdrop: 'static', keyboard: false });
     $("#modal_registro_medico").modal('show');
 }
@@ -40,7 +41,7 @@ function cargarEspecialidadesSelect(selectorId, especialidadActual) {
 function cargar_select_rol(selectElementId) {
     return new Promise((resolve, reject) => {
         $.ajax({
-            url: '/cargar_roles/',
+            url: '/cargar_roles_medico/',
             type: 'POST',
             headers: { "X-CSRFToken": getCookie('csrftoken') },
         }).done(function (resp) {
@@ -209,6 +210,20 @@ function validarEmail(email) {
     return { valido: regex.test(email), mensaje: "El formato del email es incorrecto." };
 }
 
+function validarFoto(fotoInputId) {
+    const fileInput = document.getElementById(fotoInputId);
+    const file = fileInput.files[0];
+
+    if (file) {
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!validImageTypes.includes(file.type)) {
+            return { valido: false, mensaje: "El archivo seleccionado no es una foto válida. Solo se permiten archivos JPEG, PNG y GIF." };
+        }
+    }
+
+    return { valido: true, mensaje: "" };
+}
+
 function validarCampos() {
     let camposVacios = false;
     const errores = [];
@@ -216,7 +231,7 @@ function validarCampos() {
 
     const validarCampoYAgregarClase = (campoId, validarFn) => {
         const campo = document.getElementById(campoId);
-        if (campo) {
+        if (campoId !== 'txt_foto' && campoId !== 'select_especialidad' && campoId !== 'select_rol' && campo) { 
             const valor = campo.value.trim();
             if (valor.length === 0) {
                 camposVacios = true;
@@ -234,6 +249,14 @@ function validarCampos() {
                     $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
                 }
             }
+        } else if (campoId === 'txt_foto' || campoId === 'select_especialidad' || campoId === 'select_rol') {
+            const resultado = validarFn(campoId);
+            if (!resultado.valido) {
+                errores.push(resultado.mensaje);
+                $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+            } else {
+                $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+            }
         }
     };
 
@@ -247,24 +270,9 @@ function validarCampos() {
     validarCampoYAgregarClase('txt_usuario', validarUsuario);
     validarCampoYAgregarClase('txt_contra', validarContrasena);
     validarCampoYAgregarClase('txt_email', validarEmail);
-
-    const selectEspecialidadResultado = validarSelect('select_especialidad', 'especialidad');
-    if (!selectEspecialidadResultado.valido) {
-        camposVacios = true;
-        $("#select_especialidad").removeClass("is-valid").addClass("is-invalid");
-        errores.push(selectEspecialidadResultado.mensaje);
-    } else {
-        $("#select_especialidad").removeClass("is-invalid").addClass("is-valid");
-    }
-
-    const selectRolResultado = validarSelect('select_rol', 'rol');
-    if (!selectRolResultado.valido) {
-        camposVacios = true;
-        $("#select_rol").removeClass("is-valid").addClass("is-invalid");
-        errores.push(selectRolResultado.mensaje);
-    } else {
-        $("#select_rol").removeClass("is-invalid").addClass("is-valid");
-    }
+    validarCampoYAgregarClase('select_especialidad', validarSelect);
+    validarCampoYAgregarClase('select_rol', validarSelect);
+    validarCampoYAgregarClase('txt_foto', validarFoto);
 
     if (camposVacios) {
         document.getElementById('div_mensaje_error').innerHTML = '<br>' +
@@ -330,10 +338,10 @@ function registrar_medico() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            limpiar_modal_medico()
+            limpiar_modal_medico();
             Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
-            $('#modal_registro_medico').modal('hide');
-            tbl_medicos.ajax.reload();
+                $('#modal_registro_medico').modal('hide');
+                tbl_medicos.ajax.reload();
             });
         } else if (data.status === 'error') {
             marcarCamposExistentes(data.message);
@@ -379,12 +387,12 @@ $('#tabla_medicos').on('click', '.editar', function () {
 
             var especialidadActual = data.especialidad_id;
             cargarEspecialidadesSelect('select_especialidad_editar', especialidadActual);
+            document.getElementById('div_mensaje_error_editar').innerHTML = '';
 
             $("#txt_ci_editar").attr("data-id", medico_id);
         }
     })
     .catch(error => console.error('Error:', error));
-
     $('#modal_editar_medico').modal('show');
     $('#modal_editar_medico').modal({ backdrop: 'static', keyboard: false });
 });

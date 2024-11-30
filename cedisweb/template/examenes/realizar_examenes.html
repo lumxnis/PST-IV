@@ -1,14 +1,51 @@
-<div class="content-header">
-    <div class="container-fluid">
+{% load static %}
+<script src="{% static 'js/examenes/realizar_examenes.js' %}"></script>
+<script>
+    listar_realizarexamenes();
+</script>
+
+<div class="container-fluid">
+    <div class="content-header">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0"><b>Realizar Examenes</b></h1>
+                <h1 class="m-0"><b>GESTIÓN REALIZAR EXAMEN</b></h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="{% url 'index' %}">Inicio</a></li>
                     <li class="breadcrumb-item active">Realizar Examenes</li>
                 </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><b>Listado de Examenes a Realizar</b></h3>
+                <button class="btn btn-danger btn-sm float-right" onclick="cargar_contenido('contenido_principal', '{% url 'registro_realizar_examenes' %}')">
+                    <i class="fas fa-plus"> Nuevo Registro</i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-14 table responsive">
+                        <table id="tabla_realizarexamenes" class="display">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Usuario</th>
+                                    <th>CI:</th>
+                                    <th>Paciente</th>
+                                    <th>Indica</th>
+                                    <th>Estatus</th>
+                                    <th>Fecha de Registro</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
