@@ -49,22 +49,27 @@ function listar_realizarexamenes() {
             { "data": "paciente_dni" },
             { "data": "paciente" },
             { "data": "medico" },
-            { 
-                "data": "realizarexamen_estatus",
-                "render": function (data, type, row) {
-                    return data === 'ACTIVO'
-                        ? '<span class="badge bg-success">ACTIVO</span>'
-                        : '<span class="badge bg-danger">INACTIVO</span>'
-                }
-            },
             { "data": "realizarexamen_fregistro" },
             {
-                "data": null,
-                "render": function (data, type, row) {
-                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>";
+                "data": "realizarexamen_estatus",
+                render: function (data, type, row) {
+                    if (data == 'PENDIENTE') {
+                        return '<span class="badge bg-danger">PENDIENTE</span>';
+                    } else {
+                        return '<span class="badge bg-success">FINALIZADO</span>';
+                    }
+                }
+            },
+            {
+                "data": "realizarexamen_estatus",
+                render: function (data, type, row) {
+                    if(data == 'PENDIENTE'){
+                    return "<button class='editar btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
+                }else{
+                    return "<button class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
+                    }
                 },
-                "orderable": false
-            }
+            },
         ],
         "language": {
             "sProcessing": "Procesando...",
@@ -98,6 +103,19 @@ function listar_realizarexamenes() {
     });
 }
 
+//EDITAR
+$('#tabla_realizarexamenes').on('click', '.editar', function () {
+    var data = tbl_realizarexamenes.row($(this).parents('tr')).data();
+
+    if (tbl_realizarexamenes.row(this).child.isShown()) {
+        var data = tbl_realizarexamenes.row(this).data();
+    }
+    $("#modal_editar").modal({ backdrop: 'static', keyboard: false })
+    $("#modal_editar").modal('show');
+
+});
+
+
 
 //BUSCAR PACIENTE
 function Buscar_Paciente() {
@@ -126,12 +144,9 @@ function listar_pacientes() {
         },
         "columns": [
             { "defaultContent": "" },
-            { "data": "id" },
             { "data": "paciente_dni" },
             { "data": "paciente" },
-            { "data": "paciente_celular" },
             { "data": "edad" },  
-            { "data": "paciente_sexo" },
             {
                 "data": null,
                 "render": function (data, type, row) {
@@ -205,12 +220,9 @@ function listar_medicos() {
         },
         "columns": [
             { "defaultContent": "" },
-            { "data": "medico_id" },
             { "data": "medico_nrodocumento" },
             { "data": "especialidad_nombre" },
             { "data": "medico" },
-            { "data": "medico_movil" },
-            { "data": "medico_direccion" },
             {
                 "data": null,
                 "render": function (data, type, row) {
@@ -671,5 +683,5 @@ function Registrar_Realizar_Examen_Detalle(id) {
     });
 }
 
-
+//EDITAR REALIZAR EXAMEN
 

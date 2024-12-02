@@ -1,0 +1,102 @@
+{% load static %}
+
+<div class="container-fluid" id="contenido_principal">
+    <div class="content-header">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0"><b>REGISTRO DE RESULTADOS</b></h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Inicio</a></li>
+                    <li class="breadcrumb-item active">Registro Resultados Examenes</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><b>Registrar Examenes Paciente</b></h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-3">
+                        <label for="txt_ci_pac">Cédula</label>
+                        <input type="text" id="txt_ci_pac" class="form-control" disabled>
+                    </div>
+                    <div class="col-7">
+                        <input type="text" id="txt_idexamen" hidden>
+                        <label for="txt_paciente">Paciente</label>
+                        <input type="text" id="txt_paciente" class="form-control" disabled>
+                    </div>
+                    <div class="col-2">
+                        <label for="">&nbsp;</label><br>
+                        <button class="btn btn-success" style="width:100%" onclick="Abrir_Modal_Examenes()">
+                            <i class="fas fa-search">Buscar</i>
+                        </button>
+                    </div>
+                    <div class="col-3">
+                        <label for="txt_ci_med">Indica</label>
+                        <input type="text" id="txt_ci_med" class="form-control" disabled>
+                    </div>
+                    <div class="col-9">
+                        <label for="">&nbsp;</label><br>
+                        <input type="text" id="txt_medico" class="form-control" disabled>
+                    </div>
+                    <div class="col-12" style="text-align:center;"><br>
+                        <button class="btn btn-success" onclick="Registrar_Resultado_Examen()">REGISTRAR RESULTADOS DE
+                            EXAMENES</button>
+                    </div>
+                    <div class="col-12 table-responsive"><br>
+                        <table id="table_realizarexamen_detalle" style="width:100%">
+                            <thead>
+                                <th>ID</th>
+                                <th>ANALISIS</th>
+                                <th>EXAMEN</th>
+                                <th width="200px">ARCHIVO</th>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inicio Modal Ver Paciente  -->
+<div class="modal fade" id="modal_ver_examenes" aria-labelledby="exampleModalLabel" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">LISTADO DE PACIENTES CON EXAMENES PENDIENTES</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="col-12 table-responsive">
+                            <table id="tabla_resultados_pacientes" class="display" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Cédula</th>
+                                        <th>Paciente</th>
+                                        <th>Edad</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal -->
+
+
+<script src="{% static 'js/examenes/resultadoss.js' %}"></script>

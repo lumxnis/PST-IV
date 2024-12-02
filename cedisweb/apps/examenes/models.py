@@ -124,15 +124,13 @@ class RealizarExamenDetalle(models.Model):
 
 ## Resultado
 class Resultado(models.Model):
-    paciente = models.ForeignKey(Paciente, on_delete=models.RESTRICT, null=True, blank=True)
+    realizarexamen_id = models.ForeignKey(RealizarExamen, on_delete=models.RESTRICT, null=True, blank=True)
+    usuario_id = models.ForeignKey(Profile, on_delete=models.RESTRICT, null=True, blank=True )
     resultado_fregistro = models.DateField(null=True, blank=True)
     resultado_estatus = models.CharField(max_length=1, null=True, blank=True)
 
     class Meta:
         db_table = 'resultado'
-        indexes = [
-            models.Index(fields=['paciente']),
-        ]
 
     def __str__(self):
         return f"Resultado {self.resultado_id}"

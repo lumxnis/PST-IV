@@ -43,5 +43,10 @@ urlpatterns = [
 
     ##Resultados_Examenes
     path('resultados_examenes/', views.resultados_examenes, name='resultados_examenes'),
+    path('listar_resultado_examen/', views.listar_resultado_examen, name='listar_resultado_examen'),
+    path('registro_resultado/', views.registro_resultado, name="registro_resultado"),
+    path('listar_pacientes_examenes/', views.listar_pacientes_examenes, name='listar_pacientes_examenes'),
+    path('realizarexamen_detalle/', views.realizarexamen_detalle, name='realizarexamen_detalle'),
+    path('realizar_resultado_registro/', views.realizar_resultado_registro, name='realizar_resultado_registro')
     
 ]

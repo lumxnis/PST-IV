@@ -3,17 +3,17 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
-from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol, RealizarExamen
+from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol, RealizarExamen, Resultado
 from django.db.models import Q
 import json
 from django.utils import timezone
 from django.db import connection
-import datetime
+from datetime import datetime, date
 import os
 import re
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from django.db.models import F, Value, CharField
+from django.db.models import F, Value, CharField, Func
 from django.db.models.functions import Concat
 
 ##Examenes
@@ -586,6 +586,7 @@ def realizar_examenes(request):
     return render(request, 'examenes/realizar_examenes.html')
 
 ##Registro Realizar Examenes
+@login_required
 def registro_realizar_examenes(request):
     return render(request, 'examenes/realizar_examenes_registro.html')
 
@@ -731,6 +732,8 @@ def realizar_examen_detalle(request):
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
 
+##Editar Realizar Examen
+
 
 ##########################################################################################################################################################
 
@@ -738,3 +741,238 @@ def realizar_examen_detalle(request):
 @login_required
 def resultados_examenes(request):
     return render(request, 'examenes/resultados_examenes.html')
+
+##Vista Registro Resultados
+@login_required
+def registro_resultado(request):
+    return render(request, 'examenes/resultados_examenes_registro.html')
+
+##Listar Resultados
+@login_required
+@csrf_exempt
+def listar_resultado_examen(request):
+    if request.method == 'POST':
+        draw = int(request.POST.get('draw', 1))
+        start = int(request.POST.get('start', 0))
+        length = int(request.POST.get('length', 10))
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM resultado")
+                total_count = cursor.fetchone()[0]
+
+                cursor.execute("SELECT * FROM sp_listar_resultado_examen() LIMIT %s OFFSET %s", [length, start])
+                resultados = cursor.fetchall()
+                columnas = [col[0] for col in cursor.description]
+
+            data = [
+                {col: fila[i] for i, col in enumerate(columnas)}
+                for fila in resultados
+            ]
+
+            response = {
+                "draw": draw,
+                "recordsTotal": total_count,
+                "recordsFiltered": total_count,  
+                "data": data
+            }
+
+            return JsonResponse(response)
+
+        except Exception as e:
+            print(f"Error al listar resultados de examen: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+##LISTADO EXAMENES PENDIENTES
+@login_required
+@csrf_exempt
+def listar_pacientes_examenes(request):
+    if request.method == 'POST':
+        draw = int(request.POST.get('draw', 1))
+        start = int(request.POST.get('start', 0))
+        length = int(request.POST.get('length', 10))
+        search_value = request.POST.get('search[value]', '')
+        order_column_index = int(request.POST.get('order[0][column]', 0))
+        order_column_name = request.POST.get(f'columns[{order_column_index}][data]', 'id')
+        order_direction = request.POST.get('order[0][dir]', 'asc')
+
+        valid_columns = {
+            'paciente_dni': 'paciente_dni',
+            'paciente': 'paciente',
+            'edad': 'edad'
+        }
+        
+        order_column = valid_columns.get(order_column_name, 'id')
+
+        try:
+            with connection.cursor() as cursor:
+                query = f"""
+                SELECT 
+                    realizar_examen.id,
+                    realizar_examen.paciente_id_id,
+                    paciente.paciente_nombres,
+                    paciente.paciente_apepaterno,
+                    paciente.paciente_dni,
+                    paciente.fecha_nacimiento,
+                    realizar_examen.realizarexamen_estatus,
+                    realizar_examen.medico_id_id,
+                    medico.medico_nombre,
+                    medico.medico_apepat,
+                    medico.medico_nrodocumento,
+                    realizar_examen.realizarexamen_fregistro
+                FROM 
+                    realizar_examen
+                INNER JOIN
+                    paciente
+                ON 
+                    realizar_examen.paciente_id_id = paciente.id
+                INNER JOIN
+                    medico
+                ON 
+                    realizar_examen.medico_id_id = medico.medico_id
+                WHERE 
+                    realizar_examen.realizarexamen_estatus = 'PENDIENTE' AND
+                    (paciente.paciente_dni ILIKE %s OR
+                    CONCAT(paciente.paciente_apepaterno, ' ', paciente.paciente_nombres) ILIKE %s)
+                ORDER BY {order_column} {order_direction}
+                OFFSET %s LIMIT %s;
+                """
+                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', start, length])
+                resultados = cursor.fetchall()
+                columnas = [col[0] for col in cursor.description]
+
+            data = [
+                {col: fila[i] for i, col in enumerate(columnas)}
+                for fila in resultados
+            ]
+
+            for d in data:
+                fecha_nacimiento = d['fecha_nacimiento']
+                if isinstance(fecha_nacimiento, datetime):
+                    fecha_nacimiento = fecha_nacimiento.date()
+                d['edad'] = calcular_edad(fecha_nacimiento)
+                d['paciente'] = f"{d['paciente_apepaterno']} {d['paciente_nombres']}"
+                d['medico'] = f"{d['medico_apepat']} {d['medico_nombre']}"
+                del d['fecha_nacimiento']
+                del d['medico_apepat']
+                del d['medico_nombre']
+
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM realizar_examen WHERE realizarexamen_estatus = 'PENDIENTE';")
+                total_count = cursor.fetchone()[0]
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM realizar_examen
+                    INNER JOIN paciente ON realizar_examen.paciente_id_id = paciente.id
+                    INNER JOIN medico ON realizar_examen.medico_id_id = medico.medico_id
+                    WHERE realizar_examen.realizarexamen_estatus = 'PENDIENTE' AND
+                    (paciente.paciente_dni ILIKE %s OR
+                    CONCAT(paciente.paciente_apepaterno, ' ', paciente.paciente_nombres) ILIKE %s);
+                """, [f'%{search_value}%', f'%{search_value}%'])
+                filtered_count = cursor.fetchone()[0]
+
+            response = {
+                "draw": draw,
+                "recordsTotal": total_count,
+                "recordsFiltered": filtered_count,
+                "data": data
+            }
+
+            return JsonResponse(response)
+
+        except Exception as e:
+            print(f"Error al listar exámenes: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+# Función para calcular la edad
+def calcular_edad(fecha_nacimiento):
+    hoy = date.today()
+    edad_anios = hoy.year - fecha_nacimiento.year - ((hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
+    if edad_anios > 0:
+        return f"{edad_anios} años"
+    
+    edad_meses = hoy.month - fecha_nacimiento.month - ((hoy.day) < (fecha_nacimiento.day))
+    if edad_meses > 0:
+        return f"{edad_meses} meses"
+    
+    edad_dias = (hoy - fecha_nacimiento).days
+    return f"{edad_dias} días"
+
+##LISTAR DETALLE ANALISIS 
+@login_required
+@csrf_exempt
+def realizarexamen_detalle(request):
+    if request.method == 'POST':
+        idexamen = request.POST.get('idexamen')
+        draw = int(request.POST.get('draw', 1))  
+        
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM SP_LISTAR_DETALLE_ANALISIS_RESULTADO(%s)", [idexamen])
+                resultados = cursor.fetchall()
+                columnas = [col[0] for col in cursor.description]
+
+            data = [
+                {col: fila[i] for i, col in enumerate(columnas)}
+                for fila in resultados
+            ]
+
+            response = {
+                "draw": draw,
+                "recordsTotal": len(data),
+                "recordsFiltered": len(data),
+                "data": data
+            }
+
+            return JsonResponse(response)
+
+        except Exception as e:
+            print(f"Error al listar detalles del análisis: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+##REGISTRAR RESULTADO EXAMEN
+@login_required
+@csrf_exempt
+def realizar_resultado_registro(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        idrealizarexamen = data.get('idrealizarexamen')
+        idusuario = data.get('idusuario')
+
+        print(f"idrealizarexamen: {idrealizarexamen}, idusuario: {idusuario}")
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.callproc('SP_REGISTRAR_RESULTADO_EXAMEN', [idrealizarexamen, idusuario])
+                
+                cursor.execute("SELECT * FROM resultado WHERE realizarexamen_id_id = %s AND usuario_id_id = %s", [idrealizarexamen, idusuario])
+                resultado = cursor.fetchone()
+                if not resultado:
+                    raise Exception("No se pudo registrar el resultado")
+
+            return JsonResponse({'status': 'success', 'message': 'Resultado registrado correctamente.'})
+
+        except Exception as e:
+            print(f"Error al registrar resultado: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    
+##REGISTRAR RESULTADO DETALLE
+
+
+
+
+
+
