@@ -34,7 +34,7 @@ def listar_examenes(request):
 
             data = [
                 {
-                    col: (fila[i].strftime('%Y-%m-%d') if isinstance(fila[i], (datetime.date, datetime.datetime)) else fila[i])
+                    col: (fila[i].strftime('%Y-%m-%d') if isinstance(fila[i], (date, datetime)) else fila[i])
                     for i, col in enumerate(columnas)
                 }
                 for fila in resultados
@@ -732,8 +732,78 @@ def realizar_examen_detalle(request):
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
 
-##Editar Realizar Examen
 
+#Listar Detalle
+@login_required
+@csrf_exempt
+def listar_detalle(request):
+    if request.method == 'POST':
+        try:
+            idrealizar = request.POST.get('id')
+            
+            with connection.cursor() as cursor:
+                cursor.callproc('SP_VER_DETALLE_REALIZAR_EXAMEN', [idrealizar])
+                columns = [col[0] for col in cursor.description]
+                resultados = cursor.fetchall()
+
+                data = [
+                    dict(zip(columns, row))
+                    for row in resultados
+                ]
+
+            return JsonResponse({'data': data})
+
+        except Exception as e:
+            print(f"Error al listar detalles: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+#Eliminar Detalle
+@login_required
+@csrf_exempt
+def realizar_examen_eliminar(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        p_id = data.get('id')
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("CALL SP_ELIMINAR_DETALLE_REALIZAR_EXAMEN(%s);", [p_id])
+
+            return JsonResponse({'status': 'success', 'message': 'Detalle eliminado correctamente.'})
+
+        except Exception as e:
+            print(f"Error al eliminar detalle: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+#Editar Detalle Examen
+@login_required
+@csrf_exempt
+def realizar_editar_detalle(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        p_id = data.get('id')
+        id_analisis = data.get('idanalisis')
+        id_examen = data.get('idexamen')
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT FN_EDITAR_DETALLE_EXAMEN(%s, %s, %s);", [p_id, id_analisis, id_examen])
+                resultado = cursor.fetchone()[0]
+
+            return JsonResponse({'status': 'success', 'resultado': resultado})
+
+        except Exception as e:
+            print(f"Error al editar detalle: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 ##########################################################################################################################################################
 

@@ -103,19 +103,108 @@ function listar_realizarexamenes() {
     });
 }
 
-//EDITAR
+//EDITAR 
 $('#tabla_realizarexamenes').on('click', '.editar', function () {
-    var data = tbl_realizarexamenes.row($(this).parents('tr')).data();
-
+    var data = tbl_realizarexamenes.row($(this).parents('tr')).data()
+    
     if (tbl_realizarexamenes.row(this).child.isShown()) {
         var data = tbl_realizarexamenes.row(this).data();
     }
     $("#modal_editar").modal({ backdrop: 'static', keyboard: false })
-    $("#modal_editar").modal('show');
-
+    $("#modal_editar").modal('show')
+    document.getElementById('idrealizarexamen').value=data.id
+    listar_ver_detalle(parseInt(data.id))
 });
 
+//LISTAR DETALLE
+var tbl_ver_detalle;
+function listar_ver_detalle(idrealizar) {
+    tbl_ver_detalle = $("#tabla_ver_detalle").DataTable({
+        "pageLength": 10,
+        "destroy": true,
+        "processing": true,
+        "deferRender": true,
+        "ajax": {
+            "url": "/listar_detalle/",
+            "type": 'POST',
+            "headers": { "X-CSRFToken": getCookie('csrftoken') },
+            "data": function(d) {
+                d.id = idrealizar;
+            },
+            "dataSrc": function (json) {
+                if (json.error) {
+                    console.error("Error al listar los detalles:", json.error);
+                    return [];
+                }
+                return json.data;
+            },
+            "error": function (xhr, error, code) {
+                console.error("Error al listar los detalles:", xhr.responseText);
+            }
+        },
+        "columns": [
+            { "defaultContent": "" },
+            { "data": "analisis_nombre" },
+            { "data": "examen_nombre" },
+            {
+                "data": null,
+                "render": function (data, type, row) {
+                    return "<button class='btn btn-danger btn-sm eliminar'><i class='fa fa-trash'></i></button>"
+                }
+            }
+        ],
+        "language": {
+            "sProcessing": "Procesando...",
+            "sLengthMenu": "Mostrar _MENU_ registros",
+            "sZeroRecords": "No se encontraron resultados",
+            "sEmptyTable": "Ningún dato disponible en esta tabla",
+            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "sSearch": "Buscar:",
+            "oPaginate": {
+                "sFirst": "Primero",
+                "sLast": "Último",
+                "sNext": "Siguiente",
+                "sPrevious": "Anterior"
+            },
+            "oAria": {
+                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+            }
+        },
+        select: true
+    });
 
+    tbl_ver_detalle.on('draw.dt', function () {
+        var PageInfo = $("#tabla_ver_detalle").DataTable().page.info();
+        tbl_ver_detalle.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1 + PageInfo.start;
+        });
+    });
+}
+
+//ELIMINAR DETALLE
+$('#tabla_ver_detalle').on('click', '.eliminar', function () {
+    var data = tbl_ver_detalle.row($(this).parents('tr')).data()
+    
+    if (tbl_ver_detalle.row(this).child.isShown()) {
+        var data = tbl_ver_detalle.row(this).data();
+    }
+Swal.fire({
+        title: 'Estás seguro de que desea eliminar el examen '+ data.examen_nombre +'?',
+        text: "Una vez realizado esto el examen se quitará del detalle!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, Confirmar!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Eliminar_Realizar_Examen(parseInt(data.id))
+        }
+    });
+});
 
 //BUSCAR PACIENTE
 function Buscar_Paciente() {
@@ -683,5 +772,71 @@ function Registrar_Realizar_Examen_Detalle(id) {
     });
 }
 
-//EDITAR REALIZAR EXAMEN
+//ELIMINAR ANALISIS DETALLE
+function Eliminar_Realizar_Examen(id) {
+    $.ajax({
+        url: '/realizar_examen_eliminar/',
+        type: 'POST',
+        data: JSON.stringify({
+            id: id,
+        }),
+        contentType: 'application/json',
+        success: function(resp) {
+            if (resp.status === 'success') {
+                Swal.fire("Mensaje de Confirmación", "El examen fue quitado del detalle", "success").then((result) => {
+                    if (result.value) {
+                        tbl_ver_detalle.ajax.reload()
+                    }
+                })
+            }else{
+                Swal.fire("Mensaje de Error", resp.message, "error");
+            }
+        },
+        error: function(xhr) {
+            Swal.fire("Mensaje de Error", xhr.responseJSON.message, "error");
+        }
+    });
+}
+
+//Registrar_Detalle_Editar
+function Registrar_Detalle_Editar() {
+    let id = document.getElementById('idrealizarexamen').value;
+    let idanalisis = document.getElementById('select_analisis').value;
+    let idexamen = document.getElementById('select_examen').value;
+
+    if (id.length == 0 || idanalisis.length == 0 || idexamen.length == 0) {
+        Swal.fire("Mensaje de Advertencia", "Seleccione un análisis y un examen", "error");
+        return;  
+    }
+
+    $.ajax({
+        url: '/realizar_editar_detalle/',
+        type: 'POST',
+        headers: { "X-CSRFToken": getCookie('csrftoken') },
+        data: JSON.stringify({
+            id: id,
+            idanalisis: idanalisis,
+            idexamen: idexamen
+        }),
+        contentType: 'application/json',
+        success: function(resp) {
+            if (resp.status === 'success') {
+                if (resp.resultado === 1) {
+                    Swal.fire("Mensaje de Confirmación", "El examen fue añadido al detalle correctamente", "success").then((result) => {
+                        if (result.value) {
+                            tbl_ver_detalle.ajax.reload();
+                        }
+                    });
+                } else {
+                    Swal.fire("Mensaje de Error", "El examen ya existe en el detalle", "error");
+                }
+            } else {
+                Swal.fire("Mensaje de Error", resp.message, "error");
+            }
+        },
+        error: function(xhr) {
+            Swal.fire("Mensaje de Error", xhr.responseJSON.message, "error");
+        }
+    });
+}
 

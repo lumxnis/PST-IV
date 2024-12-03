@@ -40,6 +40,9 @@ urlpatterns = [
     path('obtener_examenes_por_analisis/', views.obtener_examenes_por_analisis, name='obtener_examenes_por_analisis'),
     path('realizar_examen_registro/', views.realizar_examen_registro, name='realizar_examen_registro'),
     path('realizar_examen_detalle/', views.realizar_examen_detalle, name='realizar_examen_detalle'),
+    path('listar_detalle/', views.listar_detalle, name='listar_detalle'),
+    path('realizar_examen_eliminar/', views.realizar_examen_eliminar, name='realizar_examen_eliminar'),
+    path('realizar_editar_detalle/', views.realizar_editar_detalle, name='realizar_editar_detalle'),
 
     ##Resultados_Examenes
     path('resultados_examenes/', views.resultados_examenes, name='resultados_examenes'),

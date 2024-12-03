@@ -1,9 +1,4 @@
 {% load static %}
-<script src="{% static 'js/examenes/realizar_examen.js' %}"></script>
-<script>
-    listar_realizarexamenes();
-</script>
-
 <div class="container-fluid">
     <div class="content-header">
         <div class="row mb-2">
@@ -50,3 +45,68 @@
         </div>
     </div>
 </div>
+
+<!-- Inicio Modal Editar Realizar Examen  -->
+<div class="modal fade" id="modal_editar" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Detalle de Realizar Examen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-5">
+                        <label for="">Análisis</label>
+                        <select class="js-example-basic-single" name="" id="select_analisis" style="width: 100%">
+                        </select>
+                        <input type="text" id="idrealizarexamen" hidden>
+                    </div>
+                    <div class="col-5">
+                        <label for="">Examen</label>
+                        <select class="js-example-basic-single" name="" id="select_examen" style="width: 100%" disabled>
+                        </select>
+                    </div>
+                    <div class="col-2">
+                        <label for="">&nbsp;</label><br>
+                        <button class="btn btn-danger btn-sm" style="width:100%" onclick="Registrar_Detalle_Editar()">
+                            <i class="fas fa-plus">Agregar</i>
+                    </div>
+                    <div class="col-14 table responsive"><br><br>
+                        <table id="tabla_ver_detalle" class="display">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Análisis</th>
+                                    <th>Examen</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal -->
+
+<script src="{% static 'js/examenes/realizar_examen.js' %}"></script>
+
+<script>
+    listar_realizarexamenes();
+
+    $(document).ready(function () {
+        $('.js-example-basic-single').select2()
+        cargarAnalisisSelect('select_analisis')
+    })
+    $('#select_analisis').on('select2:select', function (e) {
+        let id = document.getElementById('select_analisis').value
+        cargar_select_examen(id)
+    })
+</script>
