@@ -263,7 +263,6 @@ function listado_Detalle_Analisis(id) {
     });
 }
 
-
 //REGISTRAR RESULTADO EXAMEN
 function Registrar_Resultado_Examen() {
     let idrealizarexamen = document.getElementById('txt_idexamen').value;

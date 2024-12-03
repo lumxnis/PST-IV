@@ -875,7 +875,7 @@ def listar_pacientes_examenes(request):
             'paciente': 'paciente',
             'edad': 'edad'
         }
-        
+
         order_column = valid_columns.get(order_column_name, 'id')
 
         try:
