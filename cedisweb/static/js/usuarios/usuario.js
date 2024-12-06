@@ -65,36 +65,15 @@ function listar_usuarios() {
                 "data": "usu_status",
                 "render": function (data, type, row) {
                     if(data=='ACTIVO'){
-                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='btn btn-success btn-sm disabled'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='desactivar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>&nbsp;<button class='contra btn btn-secondary btn-sm'><i class='fa fa-key'></i></button>"
+                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='btn btn-success btn-sm disabled'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='desactivar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>&nbsp;<button class='foto btn btn-default btn-sm'><i class='fa fa-image'></i></button>&nbsp;<button class='contra btn btn-secondary btn-sm'><i class='fa fa-key'></i></button>"
                     }else{
-                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='activar btn btn-success btn-sm'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='btn btn-danger btn-sm disabled'><i class='fa fa-trash'></i></button>&nbsp;<button class='contra btn btn-secondary btn-sm'><i class='fa fa-key'></i></button>"
+                    return "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='activar btn btn-success btn-sm'><i class='fa fa-check-circle'></i></button>&nbsp;<button class='btn btn-danger btn-sm disabled'><i class='fa fa-trash'></i></button>&nbsp;<button class='foto btn btn-default btn-sm'><i class='fa fa-image'></i></button>&nbsp;<button class='contra btn btn-secondary btn-sm'><i class='fa fa-key'></i></button>"
                     }
                 }
             }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sInfoPostFix": "",
-            "sSearch": "Buscar:",
-            "sUrl": "",
-            "sInfoThousands": ",",
-            "sLoadingRecords": "Cargando...",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         select: true
     });
@@ -533,17 +512,95 @@ function validarInputContra(contra_nueva, contra_repetir) {
         .removeClass("is-invalid").addClass("is-valid") : $("#" + contra_repetir).addClass("is-invalid");
 }    
 
+//Modificar Foto
+$('#tabla_usuario').on('click', '.foto', function () {
+    var data = tbl_usuario.row($(this).parents('tr')).data();
 
+    if (tbl_usuario.row(this).child.isShown()) {
+        data = tbl_usuario.row(this).data();
+    }
+    $("#modal_editar_foto").modal({ backdrop: 'static', keyboard: false })
+    $("#modal_editar_foto").modal('show')
 
+    document.getElementById('idusuariofoto').value = data.id
+    document.getElementById('lbl_usuario_foto').innerHTML = data.username
+})
 
+$('#modal_editar_foto').on('hidden.bs.modal', function () {
+    $(".form-control").removeClass("is-invalid").removeClass("is-valid");
+});
 
+function validarFoto(fotoInputId) {
+    const fileInput = document.getElementById(fotoInputId);
+    const file = fileInput.files[0];
+
+    if (file) {
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!validImageTypes.includes(file.type)) {
+            return { valido: false, mensaje: "El archivo seleccionado no es una foto válida. Solo se permiten archivos JPEG, PNG y GIF." };
+        }
+    }
+
+    return { valido: true, mensaje: "" };
+}
     
+function Modificar_Foto_Usuario() {
+    var id = document.getElementById('idusuariofoto').value;
+    const fotoInputId = 'txt_foto_editar';
+    const fileInput = document.getElementById(fotoInputId);
+    const file = fileInput.files[0];
 
+    // Verificar si se ha seleccionado una foto
+    if (!file) {
+        $("#" + fotoInputId).addClass("is-invalid");
+        return Swal.fire("Mensaje de Advertencia", "Debe seleccionar una foto para actualizar.", "warning");
+    }
 
+    const fotoValidation = validarFoto(fotoInputId);
 
+    if (!fotoValidation.valido) {
+        $("#" + fotoInputId).addClass("is-invalid");
+        return Swal.fire("Mensaje de Advertencia", fotoValidation.mensaje, "warning");
+    }
 
+    const foto = fileInput.value;
+    let extension = foto.split('.').pop().toLowerCase();
+    let nombrefoto = "";
+    let f = new Date();
+    if (foto.length > 0) {
+        nombrefoto = "IMG" + f.getDate() + "" + (f.getMonth() + 1) + "" + f.getFullYear() + "" +
+            f.getHours() + "" + f.getMilliseconds() + "." + extension;
+    }
 
+    let formData = new FormData();
+    let fotoobject = $("#" + fotoInputId)[0].files[0];
+    formData.append('id', id);
+    formData.append('nombrefoto', nombrefoto);
+    formData.append('foto', fotoobject);
 
+    $.ajax({
+        url: '/actualizar_foto/',
+        type: 'POST',
+        headers: { "X-CSRFToken": getCookie('csrftoken') },
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (resp) {
+            if (resp.success) {
+                Swal.fire("Mensaje de Éxito", resp.message, "success").then((value) => {
+                    $("#modal_editar_foto").modal('hide');
+                    tbl_usuario.ajax.reload();
+                    document.getElementById(fotoInputId).value = "";
+                    $("#" + fotoInputId).removeClass("is-invalid"); 
+                    $("#user_picture").attr("src", resp.new_picture_url);
+                });
+            } else {
+                Swal.fire("Mensaje de Error", resp.message, "error");
+            }
+        }
+    });
+    return false;
+}
 
 
 

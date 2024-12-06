@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
 
@@ -50,6 +52,9 @@ urlpatterns = [
     path('registro_resultado/', views.registro_resultado, name="registro_resultado"),
     path('listar_pacientes_examenes/', views.listar_pacientes_examenes, name='listar_pacientes_examenes'),
     path('realizarexamen_detalle/', views.realizarexamen_detalle, name='realizarexamen_detalle'),
-    path('realizar_resultado_registro/', views.realizar_resultado_registro, name='realizar_resultado_registro')
-    
-]
+    path('realizar_resultado_registro/', views.realizar_resultado_registro, name='realizar_resultado_registro'),
+    path('guardar_detalle_analisis/', views.guardar_detalle_analisis, name='guardar_detalle_analisis'),
+    path('listar_resultados_editar/', views.listar_resultados_editar, name='listar_resultados_editar'),
+    path('serve-file/<path:filename>/', views.serve_exam_file, name='serve_exam_file'),
+    path('actualizar_examen/', views.actualizar_examen, name='actualizar_examen')
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

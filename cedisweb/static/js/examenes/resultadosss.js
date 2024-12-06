@@ -53,9 +53,9 @@ function listar_resultados() {
                 "data": "resultado_estatus",
                 render: function (data, type, row) {
                     if (data === '1') {
-                        return '<span class="badge bg-success">FINALIZADO</span>';
+                        return '<span class="badge bg-primary">ENTREGADO</span>';
                     } else {
-                        return '<span class="badge bg-warning">ENTREGADO</span>';
+                        return '<span class="badge bg-danger">FINALIZADO</span>';
                     }
                 }
             },
@@ -68,24 +68,7 @@ function listar_resultados() {
             }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         "order": [[0, 'asc']],
         "select": true
@@ -98,6 +81,19 @@ function listar_resultados() {
         });
     });
 }
+
+//Editar Resultado Detalle
+$('#tabla_resultadosexamenes').on('click', '.editar', function () {
+    var data = tbl_resultados.row($(this).parents('tr')).data()
+    
+    if (tbl_resultados.row(this).child.isShown()) {
+        var data = tbl_resultados.row(this).data();
+    }
+
+    $("#modal_editar_resultado").modal({ backdrop: 'static', keyboard: false })
+    $("#modal_editar_resultado").modal('show')
+    listar_resultado_editar(parseInt(data.id))
+});
 
 //ABRIR MODAL PACIENTE EXAMENES
 function Abrir_Modal_Examenes() {
@@ -161,24 +157,7 @@ function listar_realizarexamenes() {
             }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         "order": [[0, 'asc']],
         "select": true
@@ -240,24 +219,7 @@ function listado_Detalle_Analisis(id) {
             { "width": "30%", "targets": 3 }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         select: true
     });
@@ -281,7 +243,12 @@ function Registrar_Resultado_Examen() {
         contentType: 'application/json',
         success: function(resp) {
             if (resp.status === 'success') {
-                Swal.fire("Mensaje de Éxito", resp.message, "success");
+                if (resp.resultado_id) {
+                    let resultado_id = parseInt(resp.resultado_id, 10);
+                    guardar_Detalle_Analisis(resultado_id);
+                } else {
+                    Swal.fire("Mensaje de Error", "No se pudo obtener el ID del resultado.", "error");
+                }                
             } else {
                 Swal.fire("Mensaje de Error", resp.message, "error");
             }
@@ -292,5 +259,180 @@ function Registrar_Resultado_Examen() {
     });
 }
 
-//REGISTRAR RESULTADO DETALLE
+// REGISTRAR RESULTADO DETALLE
+function guardar_Detalle_Analisis(resultado_id) {
+    let detalles = [];
+
+    $("#table_realizarexamen_detalle tbody tr").each(function() {
+        let fila = $(this);
+        let idrealizarexamen = fila.find('td').eq(0).text().trim();  
+        let archivo = fila.find('td').eq(3).find('input[type="file"]').prop('files')[0]; 
+
+        let detalle = {
+            idrealizarexamen: idrealizarexamen,
+            archivo: archivo
+        };
+
+        detalles.push(detalle);
+    });
+
+    let formData = new FormData();
+    formData.append('resultado_id', resultado_id);
+    formData.append('detalles', JSON.stringify(detalles.map(detalle => ({
+        idrealizarexamen: detalle.idrealizarexamen,
+        archivo: detalle.archivo ? detalle.archivo.name : null  
+    }))));
+
+    detalles.forEach((detalle, index) => {
+        if (detalle.archivo) {
+            formData.append(`archivo_${index}`, detalle.archivo);
+        }
+    });
+
+    $.ajax({
+        url: '/guardar_detalle_analisis/',
+        type: 'POST',
+        headers: { "X-CSRFToken": getCookie('csrftoken') },
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(resp) {
+            if (resp.status === 'success') {
+                Swal.fire("Mensaje de Confirmación", resp.message, "success").then((result) => {
+                    if (result.value) {
+                        traer_notificaciones()
+                        cargar_registro("contenido_principal", urlRegistroResultadoExamenes);
+                    }
+                });
+            } else {
+                Swal.fire("Mensaje de Error", resp.message, "error");
+            }
+        },
+        error: function(xhr) {
+            Swal.fire("Mensaje de Error", xhr.responseJSON.message, "error");
+        }
+    });
+}
+
+//Listar Resultados a Edtiar
+var tbl_resultado_editar;
+function listar_resultado_editar(id) {
+    tbl_resultado_editar = $("#tabla_detalle_resultado_edit").DataTable({
+        "pageLength": 10,
+        "destroy": true,
+        "processing": true,
+        "deferRender": true,
+        "ajax": {
+            "url": "/listar_resultados_editar/",
+            "type": 'POST',
+            "headers": { "X-CSRFToken": getCookie('csrftoken') },
+            "data": {
+                id: id
+            },
+            "dataSrc": "data"
+        },
+        "columns": [
+            { "defaultContent": "" },
+            { "data": "analisis_nombre" },
+            { "data": "examen_nombre" },
+            { 
+                "data": "resuldetalle_archivo",
+                render: function(data, type, row) {
+                    return "<a class='btn btn-success btn-sm' href='/serve-file/" + data + "' download><i class='fas fa-file-download'></i></a>";
+
+                }
+            },
+            {
+                "data": null,
+                "render": function (data, type, row) {
+                    return "<button class='enviar btn btn-primary btn-sm enviar'><i class='fa fa-share'></i></button>";
+                }
+            }
+        ],
+        "language": {
+            "url": languageUrl
+        },
+        select: true
+    });
+
+    tbl_resultado_editar.on('draw.dt', function () {
+        var PageInfo = $("#tabla_detalle_resultado_edit").DataTable().page.info();
+        tbl_resultado_editar.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1 + PageInfo.start;
+        });
+    });
+}
+
+$(document).ready(function() {
+    $('#tabla_detalle_resultado_edit').on('click', '.enviar', function () {
+        var data = tbl_resultado_editar.row($(this).parents('tr')).data();
+        
+        if (tbl_resultado_editar.row(this).child.isShown()) {
+            data = tbl_resultado_editar.row(this).data();
+        }
+        
+        document.getElementById('txt_id_detalle').value = data.resultado_detalle_id;
+        document.getElementById('btn_actualizar').disabled = false;
+
+        $('#modal_editar_resultado').on('hidden.bs.modal', function () { 
+            document.getElementById('btn_actualizar').disabled = true;
+            document.getElementById('txt_archivo_editar').value = "";
+            document.getElementById('txt_id_detalle').value = "";
+        });
+    });
+
+    $('#btn_actualizar').on('click', function() {
+        var resultadoDetalleId = document.getElementById('txt_id_detalle').value;
+        var archivo = document.getElementById('txt_archivo_editar').files[0];
+
+        if(resultadoDetalleId==0){
+            Swal.fire({
+                icon: 'warning',
+                title: 'Advertencia',
+                text: 'Por favor, selecciona un examen.'
+            });
+            return;
+        }
+
+        if (!archivo) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Advertencia',
+                text: 'Por favor, selecciona un archivo.'
+            });
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('resultado_detalle_id', resultadoDetalleId);
+        formData.append('archivo', archivo);
+
+        $.ajax({
+            url: '/actualizar_examen/',
+            type: 'POST',
+            headers: { "X-CSRFToken": getCookie('csrftoken') },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: 'Archivo actualizado correctamente'
+                });
+                document.getElementById('txt_archivo_editar').value = "";
+                document.getElementById('txt_id_detalle').value = "";
+                tbl_resultado_editar.ajax.reload()
+            },
+            error: function(error) {
+                console.error('Error al actualizar el archivo:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al actualizar el archivo'
+                });
+            }
+        });
+    });
+});
 

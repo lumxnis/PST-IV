@@ -1,7 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,10 +12,11 @@
   <link rel="stylesheet" href="{% static 'adminlite/plugins/fontawesome-free/css/all.min.css' %}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{% static 'adminlite/dist/css/adminlte.min.css' %}">
-  <!-- Boostrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Boostrap -->
+  <link rel="stylesheet" href="{% static 'adminlite/plugins/bootstrap/bootstrap-icons.min.css' %}">
   <!-- Datatables -->
   <link href="{% static 'DataTables/datatables.min.css' %}" rel="stylesheet">
+  <link href="{% static 'DataTables/buttons.dataTables.min.css' %}" rel="stylesheet">
   <!-- Select2 -->
   <link href="{% static 'adminlite/plugins/select2/css/select2.min.css' %}" rel="stylesheet">
   <link href="{% static 'adminlite/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet">
@@ -37,23 +37,20 @@
       </ul>
       <!-- Right navbar links -->
       <ul class="navbar-nav ml-auto">
-        <!-- Navbar Search -->
         <!-- Notifications Dropdown Menu -->
         <li class="nav-item dropdown">
-          <a class="nav-link" data-toggle="dropdown" href="#">
+          <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="true">
             <i class="far fa-bell"></i>
-            <span class="badge badge-warning navbar-badge">15</span>
+            <span class="badge badge-danger navbar-badge" id="lb_contador"></span>
           </a>
-          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-            <span class="dropdown-header">15 Notifications</span>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
+            <h6 class="dropdown-header">Exámenes Pendientes</h6>
+            <div id="notificaciones"></div>
             <div class="dropdown-divider"></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+            <h6 class="dropdown-header">Stock Bajo</h6>
+            <div id="stock_bajo"></div>
           </div>
         </li>
-
         <li class="nav-item dropdown">
           <a class="nav-link" data-toggle="dropdown" href="#">
             <i class="fas fa-caret-down"></i>
@@ -108,6 +105,7 @@
             </li>
             <b>
               <li class="nav-header">PRINCIPAL</li>
+              {% if request.session.ROL_ID == 1 %}
             </b>
             <li class="nav-item">
               <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'pacientes' %}')">
@@ -154,33 +152,98 @@
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
                 'contenido_principal', '{% url 'usuarios' %}')"><i class="fa fa-users" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Usuarios<span class="right badge badge-danger">New</span></p>
+                <p>Usuarios</p>
               </a>
             </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
               'contenido_principal', '{% url 'roles' %}')"><i class="fa fa-cogs" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Roles<span class="right badge badge-danger">New</span></p>
+                <p>Roles</p>
               </a>
             </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
               'contenido_principal', '{% url 'examenes' %}')"><i class="fa fa-stethoscope" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Examenes<span class="right badge badge-danger">New</span></p>
+                <p>Examenes</p>
               </a>
             </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
               'contenido_principal', '{% url 'analisis' %}')"><i class="fa fa-tint" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Análisis<span class="right badge badge-danger">New</span></p>
+                <p>Análisis</p>
               </a>
             </li>
             <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
               'contenido_principal', '{% url 'especialidad' %}')"><i class="fa fa-graduation-cap" aria-hidden="true"
                   style="margin-right: 8px;"></i>
-                <p>Especialidad<span class="right badge badge-danger">New</span></p>
+                <p>Especialidad</p>
               </a>
             </li>
+            {% endif %}
+            {% if request.session.ROL_ID == 2 %}
+            </b>
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'pacientes' %}')">
+                <i class="fa fa-wheelchair" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Pacientes</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'medico' %}')">
+                <i class="fa fa-user-md" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Médico</p>
+              </a>
+            </li>
+            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
+            'contenido_principal', '{% url 'insumos' %}')"><i class="fa fa-flask" aria-hidden="true"
+                  style="margin-right: 8px;"></i>
+                <p>Insumos</p>
+              </a>
+            </li>
+            <li class="nav-item"> <a href="#" class="nav-link" onclick="cargar_contenido(
+            'contenido_principal', '{% url 'proveedores' %}')"><i class="fa fa-user" aria-hidden="true"
+                  style="margin-right: 8px;"></i>
+                <p>Proveedores</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link"
+                onclick="cargar_contenido('contenido_principal', '{% url 'realizar_examenes' %}')">
+                <i class="fa fa-heartbeat" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Realizar Examenes</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link"
+                onclick="cargar_contenido('contenido_principal', '{% url 'resultados_examenes' %}')">
+                <i class="fa fa-clipboard-list" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Resultados de Examen</p>
+              </a>
+            </li>
+            {% endif %}
+            {% if request.session.ROL_ID == 3 %}
+            </b>
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="cargar_contenido('contenido_principal', '{% url 'pacientes' %}')">
+                <i class="fa fa-wheelchair" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Pacientes</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link"
+                onclick="cargar_contenido('contenido_principal', '{% url 'realizar_examenes' %}')">
+                <i class="fa fa-heartbeat" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Realizar Examenes</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link"
+                onclick="cargar_contenido('contenido_principal', '{% url 'resultados_examenes' %}')">
+                <i class="fa fa-clipboard-list" aria-hidden="true" style="margin-right: 8px;"></i>
+                <p>Resultados de Examen</p>
+              </a>
+            </li>
+            {% endif %}
           </ul>
           <input type="text" value="{{ user_id }}" id="txt_idprincipal" hidden disabled>
         </nav>
@@ -252,19 +315,30 @@
   <!-- REQUIRED SCRIPTS -->
   <!-- jQuery -->
   <script src="{% static 'adminlite/plugins/jquery/jquery.min.js' %}"></script>
+  <!-- Popper -->
+  <script src="{% static 'DataTables/popper.min.js' %}"></script>
   <!-- Bootstrap 4 -->
   <script src="{% static 'adminlite/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <!-- AdminLTE App -->
   <script src="{% static 'adminlite/dist/js/adminlte.min.js' %}"></script>
   <!-- DataTable -->
   <script src="{% static 'DataTables/datatables.min.js' %}"></script>
+  <script src="{% static 'DataTables/pdfmake.min.js' %}"></script>
+  <script src="{% static 'DataTables/vfs_fonts.js' %}"></script>
+  <script src="{% static 'DataTables/jszip.min.js' %}"></script>
+  <script src="{% static 'DataTables/dataTables.buttons.min.js' %}"></script>
+  <script src="{% static 'DataTables/buttons.print.min.js' %}"></script>
+  <script src="{% static 'DataTables/buttons.html5.min.js' %}"></script>
   <!-- Select2 -->
   <script src="{% static 'adminlite/plugins/select2/js/select2.full.min.js' %}"></script>
   <!-- Sweetaler -->
   <script src="{% static 'adminlite/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
 
-
   <script>
+    var urlRegistroRealizarExamenes = "{% url 'realizar_examenes' %}";
+    var urlRegistroResultadoExamenes = "{% url 'resultados_examenes' %}";
+    var languageUrl = "{% static 'DataTables/es-ES.json' %}";
+
     function cargar_contenido(id, vista) {
       $("#" + id).load(vista);
     }
@@ -276,13 +350,90 @@
         $(this).addClass("active")
       })
     })
-    
-    var urlRegistroRealizarExamenes = "{% url 'realizar_examenes' %}";
+
+    // Notificaciones
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function traer_notificaciones() {
+      $.ajax({
+        url: '/listar_notificaciones/',
+        type: 'GET',
+        headers: { "X-CSRFToken": getCookie('csrftoken') },
+      }).done(function (resp) {
+        let data = resp.notificaciones;
+        let stock = resp.stock_bajo;
+
+        let totalNotificaciones = data.length + stock.length;
+        document.getElementById('lb_contador').innerHTML = totalNotificaciones;
+
+        // Notificaciones
+        let llenardata = "";
+        if (data.length > 0) {
+          for (let i = 0; i < data.length; i++) {
+            llenardata += `<a href="#" class="dropdown-item" id="notificacion-${i}">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h3 class="dropdown-item-title">
+                                            <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
+                                            Paciente: ${data[i].paciente_nombre}
+                                        </h3>
+                                        <p class="text-sm">Médico: ${data[i].medico_nombre}</p>
+                                        <p class="text-sm">
+                                            <i class="far fa-clock mr-1"></i> Fecha: ${data[i].realizar_examen_fregistro}
+                                        </p>
+                                    </div>
+                                </div>
+                                </a>
+                                <div class="dropdown-divider"></div>`;
+          }
+        } else {
+          llenardata += "<div class='dropdown-item'>No hay examenes pendientes</div>";
+        }
+        document.getElementById('notificaciones').innerHTML = llenardata;
+
+        // Stock Bajo
+        let stockData = "";
+        if (stock.length > 0) {
+          for (let i = 0; i < stock.length; i++) {
+            stockData += `<a href="#" class="dropdown-item" id="stock-${i}">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h3 class="dropdown-item-title">
+                                            <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
+                                            Producto: ${stock[i].producto_nombre}
+                                        </h3>
+                                        <p class="text-sm">Cantidad: ${stock[i].cantidad}</p>
+                                    </div>
+                                </div>
+                                </a>
+                                <div class="dropdown-divider"></div>`;
+          }
+        } else {
+          stockData += "<div class='dropdown-item'>No hay productos en stock bajo</div>";
+        }
+        document.getElementById('stock_bajo').innerHTML = stockData;
+      }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.error("Error in AJAX request: ", textStatus, errorThrown);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      traer_notificaciones();
+    }); 
   </script>
-
-
-
-
 </body>
 
 </html>

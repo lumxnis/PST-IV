@@ -1,9 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
-from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol, RealizarExamen, Resultado
+from .models import Analisis, Examen, Especialidad, Medico, Profile, Rol, RealizarExamen, Resultado, ResultadoDetalle
 from django.db.models import Q
 import json
 from django.utils import timezone
@@ -15,6 +15,12 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.db.models import F, Value, CharField, Func
 from django.db.models.functions import Concat
+from django.core.files.storage import default_storage
+from django.http import FileResponse, Http404
+from django.conf import settings
+import mimetypes
+from django.core.files.base import ContentFile
+from django.http import StreamingHttpResponse
 
 ##Examenes
 @login_required
@@ -1019,27 +1025,145 @@ def realizar_resultado_registro(request):
         idrealizarexamen = data.get('idrealizarexamen')
         idusuario = data.get('idusuario')
 
-        print(f"idrealizarexamen: {idrealizarexamen}, idusuario: {idusuario}")
-
         try:
             with connection.cursor() as cursor:
-                cursor.callproc('SP_REGISTRAR_RESULTADO_EXAMEN', [idrealizarexamen, idusuario])
-                
-                cursor.execute("SELECT * FROM resultado WHERE realizarexamen_id_id = %s AND usuario_id_id = %s", [idrealizarexamen, idusuario])
-                resultado = cursor.fetchone()
-                if not resultado:
+                cursor.callproc('SP_REGISTRAR_RESULTADO_EXAMEN', [idusuario, idrealizarexamen])
+                resultado_id = cursor.fetchone()
+
+                if resultado_id is None or resultado_id[0] is None:
                     raise Exception("No se pudo registrar el resultado")
 
-            return JsonResponse({'status': 'success', 'message': 'Resultado registrado correctamente.'})
+                resultado_id = resultado_id[0]
+
+            return JsonResponse({'status': 'success', 'message': 'Resultado registrado correctamente.', 'resultado_id': resultado_id})
 
         except Exception as e:
             print(f"Error al registrar resultado: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    else:
-        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
     
 ##REGISTRAR RESULTADO DETALLE
+@login_required
+@csrf_exempt
+def guardar_detalle_analisis(request):
+    if request.method == 'POST':
+        resultado_id = request.POST.get('resultado_id')
+        detalles = json.loads(request.POST.get('detalles', '[]'))
+
+        for detalle in detalles:
+            idrealizarexamen = int(detalle['idrealizarexamen'])  
+            archivo = request.FILES.get(f'archivo_{detalles.index(detalle)}')
+            
+            if archivo:
+                file_name = default_storage.save(f'uploads/{archivo.name}', archivo)
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT sp_registrar_resultado_detalle(%s, %s, %s)
+                    """, [resultado_id, idrealizarexamen, file_name])
+
+        return JsonResponse({'status': 'success', 'message': 'Detalles guardados correctamente.'})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+##Listar_Resultado_Detalle_Editar
+@login_required
+@csrf_exempt
+def listar_resultados_editar(request):
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM SP_LISTAR_RESULTADO_DETALLE_EDITAR(%s)", [id])
+                rows = cursor.fetchall()
+
+                columns = [
+                    'analisis_nombre', 
+                    'examen_nombre', 
+                    'resuldetalle_archivo',
+                    'resultado_detalle_id', 
+                    'resultado_id'
+                ]
+
+                results = [dict(zip(columns, row)) for row in rows]
+
+            return JsonResponse({'data': results}, safe=False)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+    print("Método no permitido")
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+##Editar Examen
+@login_required
+@csrf_exempt
+def actualizar_examen(request):
+    if request.method == 'POST':
+        resultado_detalle_id = request.POST['resultado_detalle_id']
+        archivo = request.FILES.get('archivo')
+
+        if archivo:
+            try:
+                resultado_detalle = get_object_or_404(ResultadoDetalle, id=resultado_detalle_id)
+                
+                # Eliminar el archivo anterior si existe
+                if resultado_detalle.resuldetalle_archivo and resultado_detalle.resuldetalle_archivo.name:
+                    old_file_path = os.path.join(settings.MEDIA_ROOT, resultado_detalle.resuldetalle_archivo.name)
+                    if os.path.exists(old_file_path):
+                        os.remove(old_file_path)
+                
+                # Guardar el nuevo archivo
+                resultado_detalle.resuldetalle_archivo.save(archivo.name, ContentFile(archivo.read()))
+                resultado_detalle.save()
+                
+                # Verificar integridad del archivo
+                if resultado_detalle.resuldetalle_archivo:
+                    with resultado_detalle.resuldetalle_archivo.open() as f:
+                        content = f.read()
+                        if not content:
+                            return JsonResponse({'error': 'El archivo parece estar corrupto'}, status=500)
+                
+                return JsonResponse({'mensaje': 'Archivo actualizado correctamente'})
+            except ResultadoDetalle.DoesNotExist:
+                return JsonResponse({'error': 'El detalle del resultado no existe'}, status=404)
+        else:
+            return JsonResponse({'error': 'No se recibió ningún archivo'}, status=400)
+
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+##Visualizar Examenes
+@login_required
+def serve_exam_file(request, filename):
+    file_path = os.path.join(settings.MEDIA_ROOT, filename)
+    print(f"Ruta del archivo: {file_path}")  # 
+    if os.path.exists(file_path):
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if not mime_type:
+            mime_type = "application/octet-stream"
+
+        def file_iterator(file_path, chunk_size=8192):
+            with open(file_path, 'rb') as file:
+                while chunk := file.read(chunk_size):
+                    yield chunk
+
+        response = StreamingHttpResponse(file_iterator(file_path), content_type=mime_type)
+        response['Content-Disposition'] = f'inline; filename={os.path.basename(file_path)}'
+        return response
+    else:
+        raise Http404("Archivo no encontrado")
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

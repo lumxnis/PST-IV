@@ -138,7 +138,7 @@ class Resultado(models.Model):
 ##Resultado Detalle
 class ResultadoDetalle(models.Model):
     resultado = models.ForeignKey(Resultado, on_delete=models.RESTRICT, null=True, blank=True)
-    resuldetalle_archivo = models.CharField(max_length=255, null=True, blank=True)
+    resuldetalle_archivo = models.FileField(upload_to='uploads/', null=True, blank=True)
     rdetalle = models.ForeignKey(RealizarExamenDetalle, on_delete=models.RESTRICT, null=True, blank=True)
 
     class Meta:

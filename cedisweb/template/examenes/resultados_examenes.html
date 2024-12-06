@@ -49,3 +49,47 @@
         </div>
     </div>
 </div>
+
+<!-- Inicio Modal Editar Resultado Examen  -->
+<div class="modal fade" id="modal_editar_resultado" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Detalle de Resultado Examen</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-9">
+                        <label for="">Seleccionar Archivo</label>
+                        <input type="file" class="form-control" id="txt_archivo_editar">
+                        <input type="text" id="txt_id_detalle" hidden>
+                    </div>
+                    <div class="col-3">
+                        <label for="">&nbsp;</label><br>
+                        <button class="btn btn-success" id="btn_actualizar" disabled>Actualizar</button>
+                    </div>
+                    <div class="col-12 table responsive"><br>
+                        <table id="tabla_detalle_resultado_edit" class="display">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Análisis</th>
+                                    <th>Examen</th>
+                                    <th>Archivo</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal -->

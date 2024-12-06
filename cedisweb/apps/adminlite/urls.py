@@ -21,9 +21,6 @@ urlpatterns = [
     ##Profile
     path('profile/', views.profile, name="profile"),
 
-    ##Edit Profile
-    path('edit_profile/', views.edit_profile, name='edit_profile'),
-
     ## Usuarios
     path('usuarios/', views.usuarios, name='usuarios'),
     path('listar_usuarios/', views.listar_usuarios, name='listar_usuarios'),
@@ -32,6 +29,7 @@ urlpatterns = [
     path('modificar_usuario/',views.modificar_usuario, name='modificar_usuario'),
     path('modificar_usuario_estatus/', views.modificar_usuario_estatus, name='modificar_usuario_estatus'),
     path('cambiar_contraseña/', views.cambiar_contraseña, name='cambiar_contraseña'),
+    path('actualizar_foto/', views.actualizar_foto, name='actualizar_foto'),
 
     ## Roles
     path('roles/', views.roles, name='roles'),
@@ -39,4 +37,7 @@ urlpatterns = [
     path('registrar_rol/', views.registrar_rol, name='registrar_rol'),
     path('obtener_estatus/', views.obtener_estatus, name='obtener_estatus'),
     path('modificar_rol/', views.modificar_rol, name='modificar_rol'),
+
+    ## Notificaciones
+    path('listar_notificaciones/', views.listar_notificaciones, name='listar_notificaciones'),
 ]

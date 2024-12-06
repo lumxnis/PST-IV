@@ -14,7 +14,9 @@ from .models import Profile
 # 
 logger = logging.getLogger(__name__)
 @receiver(user_logged_in)
-def store_user_id_in_session(sender, request, user, **kwargs):
+def store_user_info_in_session(sender, request, user, **kwargs):
     request.session['S_IDUSUARIO'] = user.id
-    logger.debug(f"ID del usuario {user.id} almacenada en la sesión.")
+    request.session['ROL_ID'] = user.rol.rol_id 
+    logger.debug(f"ID del usuario {user.id} y ROL_ID {user.rol.rol_id} almacenados en la sesión.")
+
 

@@ -1,5 +1,5 @@
 {% load static %}
-<script src="{% static 'js/usuarios/userss.js' %}"></script>
+<script src="{% static 'js/usuarios/usuario.js' %}"></script>
 <script>
     listar_usuarios()
 </script>
@@ -163,6 +163,36 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
                 <button type="button" class="btn btn-primary" onclick="Modificar_Contra_Usuario()
+                ">Modificar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin Modal-->
+
+<!-- Modal Editar Foto -->
+<div class="modal fade" id="modal_editar_foto" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Modificar Foto del 
+                Usuario <label for="" id="lbl_usuario_foto"></label></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>                                                        
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="">Foto</label>
+                        <input type="file" id="txt_foto_editar" class="form-control">
+                        <input type="text" id="idusuariofoto" hidden>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Cerrar</button>               
+                <button type="button" class="btn btn-primary" onclick="Modificar_Foto_Usuario()
                 ">Modificar</button>
             </div>
         </div>

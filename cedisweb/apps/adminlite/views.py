@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm 
@@ -7,7 +7,7 @@ from django.contrib import messages
 from .forms import ProfileForm
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from .models import Profile, Rol
+from .models import Profile, Rol, Profile
 from django.db.models import Q, F
 from django.db import connection
 import os, re
@@ -30,14 +30,6 @@ def exit(request):
     logout(request)
     return redirect('home')
 
-#Register
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
-from django.conf import settings
-import os
-
-
 ##Dashboard
 @login_required
 def index(request):
@@ -47,31 +39,14 @@ def index(request):
 ## Profile
 @login_required 
 def profile(request):
+    user = request.user 
+    context = {'user': user}
     return render(request, 'adminlite/profile.html')
-    
-#Edit Profile
-@login_required
-def edit_profile(request):
-    if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            usuario = form.save(commit=False)
-            
-            if 'picture' in request.FILES:
-                if usuario.picture and usuario.picture.name != 'users/profile_default.png':
-                    old_picture_path = os.path.join(settings.MEDIA_ROOT, usuario.picture.name)
-                    if os.path.exists(old_picture_path):
-                        os.remove(old_picture_path)
-                
-                usuario.picture = request.FILES['picture']
-            
-            usuario.save()
-            messages.success(request, 'Tu perfil ha sido actualizado con éxito.')
-            return redirect('index')
-    else:
-        form = ProfileForm(instance=request.user)
-    
-    return render(request, 'adminlite/edit_profile.html', {'form': form})
+
+def mostrar_usuario(request, user_id):
+    user = Profile.objects.get(id=user_id)
+    context = {'user': user}
+    return render(request, 'adminlite/profile.html', context)
 
 ## Usuarios
 @login_required
@@ -147,14 +122,6 @@ def cargar_roles(request):
         return JsonResponse({'error': 'Método no permitido'}, status=400)
 
 ## Registrar Usuario
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from django.db import connection
-from django.contrib.auth.hashers import make_password
-import os
-import re
-
 @login_required
 @csrf_exempt
 def registrar_usuario(request):
@@ -406,6 +373,66 @@ def modificar_rol(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     else:
         return JsonResponse({'status': 'error', 'message': 'Método de solicitud no permitido.'})
+
+##Modificar Foto
+@login_required
+@csrf_exempt
+def actualizar_foto(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('id')
+        foto = request.FILES.get('foto')
+
+        if not foto:
+            return JsonResponse({'success': False, 'message': 'No se ha proporcionado ninguna foto.'}, status=400)
+
+        # Validación del tipo de archivo
+        valid_image_types = ['image/jpeg', 'image/png', 'image/gif']
+        if foto.content_type not in valid_image_types:
+            return JsonResponse({'success': False, 'message': 'El archivo seleccionado no es una foto válida. Solo se permiten archivos JPEG, PNG y GIF.'}, status=400)
+
+        user = get_object_or_404(Profile, pk=user_id)
+        
+        # Eliminar la foto anterior si existe
+        if user.picture and user.picture.name != 'profile_default.png':
+            old_picture_path = os.path.join(settings.MEDIA_ROOT, user.picture.name)
+            if os.path.exists(old_picture_path):
+                os.remove(old_picture_path)
+
+        user.picture.save(f'{foto.name}', foto)
+        user.save()
+
+        new_picture_url = os.path.join(settings.MEDIA_URL, 'users', foto.name)
+
+        return JsonResponse({'success': True, 'message': 'Foto actualizada correctamente', 'new_picture_url': new_picture_url})
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+##Notificaiones
+@login_required
+def listar_notificaciones(request):
+    with connection.cursor() as cursor:
+        # Consulta para notificaciones
+        cursor.execute("SELECT * FROM sp_listar_notificaciones()")
+        notificaciones = cursor.fetchall()
+        notificaciones_results = [
+            {"paciente_nombre": row[0], "realizar_examen_fregistro": str(row[1]), "medico_nombre": row[2]}
+            for row in notificaciones
+        ]
+
+        # Consulta para stock bajo
+        cursor.execute("""
+            SELECT producto.nombrep, producto.cantidad
+            FROM insumos_productos producto
+            WHERE CAST(producto.cantidad AS INTEGER) < 5
+        """)
+        stock_bajo = cursor.fetchall()
+        stock_bajo_results = [
+            {"producto_nombre": row[0], "cantidad": row[1]}
+            for row in stock_bajo
+        ]
+
+    return JsonResponse({"notificaciones": notificaciones_results, "stock_bajo": stock_bajo_results}, safe=False)
+
 
 
 

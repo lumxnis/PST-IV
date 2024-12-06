@@ -66,30 +66,13 @@ function listar_realizarexamenes() {
                     if(data == 'PENDIENTE'){
                     return "<button class='editar btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
                 }else{
-                    return "<button class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
+                    return "<button class='noeditar btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
                     }
                 },
             },
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         "order": [[0, 'asc']],
         "select": true
@@ -114,6 +97,16 @@ $('#tabla_realizarexamenes').on('click', '.editar', function () {
     $("#modal_editar").modal('show')
     document.getElementById('idrealizarexamen').value=data.id
     listar_ver_detalle(parseInt(data.id))
+});
+
+$('#tabla_realizarexamenes').on('click', '.noeditar', function () {
+    var data = tbl_realizarexamenes.row($(this).parents('tr')).data()
+    
+    if (tbl_realizarexamenes.row(this).child.isShown()) {
+        var data = tbl_realizarexamenes.row(this).data();
+    }
+    
+    return Swal.fire("Mensaje de Advertencia", "No se puede editar un examen finalizado.", "warning");
 });
 
 //LISTAR DETALLE
@@ -154,24 +147,7 @@ function listar_ver_detalle(idrealizar) {
             }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         select: true
     });
@@ -244,24 +220,7 @@ function listar_pacientes() {
             }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         select: true
     });
@@ -320,24 +279,7 @@ function listar_medicos() {
             }
         ],
         "language": {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sSearch": "Buscar:",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            }
+            "url": languageUrl
         },
         select: true
     });
@@ -759,6 +701,7 @@ function Registrar_Realizar_Examen_Detalle(id) {
             if (resp.status === 'success') {
                 Swal.fire("Mensaje de Confirmación", resp.message, "success").then((result) => {
                     if (result.value) {
+                        traer_notificaciones()
                         cargar_registro("contenido_principal", urlRegistroRealizarExamenes);
                     }
                 });
