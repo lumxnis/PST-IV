@@ -2,10 +2,10 @@
 function ModalRegistroProveedores() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     $("#modal_registro_prov").modal({ backdrop: 'static', keyboard: false });
-    $("#modal_registro_prov").modal('show'); 
+    $("#modal_registro_prov").modal('show');
 }
-$('#modal_registro_prov').on('hidden.bs.modal', function () { 
-    document.getElementById('div_mensaje_error').innerHTML = ''; 
+$('#modal_registro_prov').on('hidden.bs.modal', function () {
+    document.getElementById('div_mensaje_error').innerHTML = '';
 });
 
 ////Modal Editar Proveedor
@@ -28,8 +28,8 @@ $('#tabla_proveedor').on('click', '.editar', function () {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     $("#modal_editar_prov").modal({ backdrop: 'static', keyboard: false });
 
-    $('#modal_editar_prov').on('hidden.bs.modal', function () { 
-        document.getElementById('div_mensaje_error_editar').innerHTML = ''; 
+    $('#modal_editar_prov').on('hidden.bs.modal', function () {
+        document.getElementById('div_mensaje_error_editar').innerHTML = '';
     });
 })
 
@@ -52,66 +52,146 @@ var csrftoken = getCookie('csrftoken');
 
 var tbl_prov;
 function listar_proveedores() {
-    tbl_prov = $("#tabla_proveedor").DataTable({
-        "pageLength": 10,
-        "destroy": true,
-        "processing": true,
-        "deferRender": true,
-        "serverSide": true,
-        "ajax": {
-            "url": "/listar_proveedores/",
-            "type": 'POST',
-            "headers": { "X-CSRFToken": getCookie('csrftoken') },
-            "dataSrc": "data"
-        },
-        "columns": [
-            { "defaultContent": "" },
-            { "data": "cedula_prov" },
-            { "data": "rif" },
-            { "data": "nombre_prov" },
-            { "data": "apellido_prov" },
-            { "data": "direccion_prov" },
-            { "data": "telefono_prov" },
-            { "data": "email_prov" },
-            { "defaultContent": "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='eliminar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>" },
-        ],
-        "language": {
-            "url": languageUrl
-        },
-        "dom": '<"top"B><"second"lf>rt<"bottom"ip>',
-        "buttons": [
-            {
-                extend: 'excelHtml5',
-                text: '<i class="fas fa-file-excel"></i> ',
-                titleAttr: 'Exportar a Excel',
-                className: 'btn btn-success'
-            },
-            {
-                extend: 'pdfHtml5',
-                text: '<i class="fas fa-file-pdf"></i> ',
-                titleAttr: 'Exportar a PDF',
-                className: 'btn btn-danger'
-            },
-            {
-                extend: 'print',
-                text: '<i class="fa fa-print"></i> ',
-                titleAttr: 'Imprimir',
-                className: 'btn btn-info'
-            },
-            {
-                extend: 'copyHtml5',
-                text: '<i class="fa fa-copy"></i> ',
-                titleAttr: 'Copiar',
-                className: 'btn btn-copy'
-            }
-        ],
-        select: true
-    });
+    $.getJSON('/media/logo.json', function (data) {
+        var logoCedis = data.logoCedis;
 
-    tbl_prov.on('draw.dt', function () {
-        var PageInfo = $("#tabla_proveedor").DataTable().page.info();
-        tbl_prov.column(0, { page: 'current' }).nodes().each(function (cell, i) {
-            cell.innerHTML = i + 1 + PageInfo.start;
+        tbl_prov = $("#tabla_proveedor").DataTable({
+            "pageLength": 10,
+            "destroy": true,
+            "processing": true,
+            "deferRender": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "/listar_proveedores/",
+                "type": 'POST',
+                "headers": { "X-CSRFToken": getCookie('csrftoken') },
+                "dataSrc": "data"
+            },
+            "columns": [
+                { "defaultContent": "" },
+                { "data": "cedula_prov" },
+                { "data": "rif" },
+                { "data": "nombre_prov" },
+                { "data": "apellido_prov" },
+                { "data": "direccion_prov" },
+                { "data": "telefono_prov" },
+                { "data": "email_prov" },
+                { "defaultContent": "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='eliminar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>" }
+            ],
+            "language": {
+                "url": languageUrl
+            },
+            "dom": '<"top"B><"second"lf>rt<"bottom"ip>',
+            "buttons": [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fas fa-file-excel"></i> ',
+                    titleAttr: 'Exportar a Excel',
+                    className: 'btn btn-success',
+                    filename: 'proveedores',
+                    title: 'Listado de Proveedores',
+                    customize: function (xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        var sheetData = $(sheet).find('sheetData');
+
+                        var firstRow = $(sheetData).find('row[r="1"]');
+                        var firstCell = $(firstRow).find('c[r="A1"]');
+
+                        var is = $('<is>');
+                        var t = $('<t>').text('Listado de Proveedores');
+                        is.append(t);
+
+                        $(firstCell).append(is);
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="fas fa-file-pdf"></i> ',
+                    titleAttr: 'Exportar a PDF',
+                    className: 'btn btn-danger',
+                    filename: 'proveedores',
+                    title: 'Listado de Proveedores',
+                    customize: function (doc) {
+
+                        doc.pageSize = 'A4';
+                        doc.pageOrientation = 'landscape';
+                        doc.pageMargins = [20, 60, 20, 40];
+
+                        doc.content.splice(0, 1, {
+                            text: [
+                                { text: 'CEDIS C.A\n', fontSize: 18, alignment: 'center', bold: true },
+                                { text: 'Listado de Proveedores\n', fontSize: 14, alignment: 'center', bold: true },
+                                { text: 'Fecha: ' + new Date().toLocaleDateString() + '\n\n', fontSize: 10, alignment: 'center' }
+                            ],
+                            alignment: 'center'
+                        });
+                        doc['header'] = function () {
+                            return {
+                                columns: [
+                                    {
+                                        image: logoCedis,
+                                        width: 100
+                                    },
+                                    {
+                                        alignment: 'right',
+                                        text: 'Listado de Proveedores\nCEDIS C.A',
+                                        fontSize: 12,
+                                        margin: [0, 20]
+                                    }
+                                ],
+                                margin: [10, 10]
+                            };
+                        };
+                        doc['footer'] = function (page, pages) {
+                            return {
+                                columns: [
+                                    {
+                                        alignment: 'right',
+                                        text: ['Página ', { text: page.toString() }, ' de ', { text: pages.toString() }]
+                                    }
+                                ],
+                                margin: [10, 10]
+                            };
+                        };
+                        doc.defaultStyle.fontSize = 12;
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="fa fa-print"></i> ',
+                    titleAttr: 'Imprimir',
+                    className: 'btn btn-info',
+                    title: 'Listado de Proveedores',
+                    customize: function (win) {
+                        $(win.document.body)
+                            .css('font-size', '12pt')
+                            .prepend(
+                                '<div style="display: flex; justify-content: space-between;">' +
+                                '<div><img src="' + logoCedis + '" style="height: 50px;" /></div>' +
+                                '<div style="text-align: right;">' +
+                                '<h3>CEDIS C.A</h3>' +
+                                '<h4>Listado de Proveedores</h4>' +
+                                '<h5>Fecha: ' + new Date().toLocaleDateString() + '</h5>' +
+                                '</div></div>'
+                            );
+                    }
+                },
+                {
+                    extend: 'copyHtml5',
+                    text: '<i class="fa fa-copy"></i> ',
+                    titleAttr: 'Copiar',
+                    className: 'btn btn-copy',
+                    title: 'Listado de Proveedores'
+                }
+            ],
+            select: true
+        });
+
+        tbl_prov.on('draw.dt', function () {
+            var PageInfo = $("#tabla_proveedor").DataTable().page.info();
+            tbl_prov.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + PageInfo.start;
+            });
         });
     });
 }
@@ -295,17 +375,17 @@ function registrar_prov() {
                         $("#txt_apellido").addClass("is-invalid");
                     }
                     document.getElementById('div_mensaje_error').innerHTML = '<br>' +
-                    '<div class="alert alert-danger alert-dismissible">' +
-                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-                    '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + resp.message + '</div>';
+                        '<div class="alert alert-danger alert-dismissible">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                        '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + resp.message + '</div>';
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 document.getElementById('div_mensaje_error').innerHTML = '<br>' +
-                '<div class="alert alert-danger alert-dismissible">' +
-                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-                '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
-                'Error al registrar proveedor. Por favor, inténtelo de nuevo.</div>';
+                    '<div class="alert alert-danger alert-dismissible">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                    '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
+                    'Error al registrar proveedor. Por favor, inténtelo de nuevo.</div>';
             }
         });
     }
@@ -350,48 +430,48 @@ function modificar_prov() {
             },
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
-                    $("#modal_editar_prov").modal('hide');
-                    tbl_prov.ajax.reload();
-                    document.getElementById('div_mensaje_error_editar').innerHTML = '';
-                });
-            } else {
-                // Marcar campos con is-invalid si hay errores
-                if (data.message.includes("El proveedor con este rif ya existe")) {
-                    $("#txt_rif_editar").addClass("is-invalid");
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
+                        $("#modal_editar_prov").modal('hide');
+                        tbl_prov.ajax.reload();
+                        document.getElementById('div_mensaje_error_editar').innerHTML = '';
+                    });
+                } else {
+                    // Marcar campos con is-invalid si hay errores
+                    if (data.message.includes("El proveedor con este rif ya existe")) {
+                        $("#txt_rif_editar").addClass("is-invalid");
+                    }
+                    if (data.message.includes("El proveedor con este email ya existe")) {
+                        $("#txt_correo_editar").addClass("is-invalid");
+                    }
+                    if (data.message.includes("El formato del número de teléfono es incorrecto")) {
+                        $("#txt_tlf_editar").addClass("is-invalid");
+                    }
+                    if (data.message.includes("El formato del RIF es incorrecto")) {
+                        $("#txt_rif_editar").addClass("is-invalid");
+                    }
+                    if (data.message.includes("El formato del email ingresado es incorrecto")) {
+                        $("#txt_correo_editar").addClass("is-invalid");
+                    }
+                    if (data.message.includes("El campo de la cédula debe contener")) {
+                        $("#txt_cedula_editar").addClass("is-invalid");
+                    }
+
+                    document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
+                        '<div class="alert alert-danger alert-dismissible">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                        '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + data.message + '</div>';
                 }
-                if (data.message.includes("El proveedor con este email ya existe")) {
-                    $("#txt_correo_editar").addClass("is-invalid");
-                }
-                if (data.message.includes("El formato del número de teléfono es incorrecto")) {
-                    $("#txt_tlf_editar").addClass("is-invalid");
-                }
-                if (data.message.includes("El formato del RIF es incorrecto")) {
-                    $("#txt_rif_editar").addClass("is-invalid");
-                }
-                if (data.message.includes("El formato del email ingresado es incorrecto")) {
-                    $("#txt_correo_editar").addClass("is-invalid");
-                }
-                if (data.message.includes("El campo de la cédula debe contener")) {
-                    $("#txt_cedula_editar").addClass("is-invalid");
-                }
-                
+            })
+            .catch(error => {
                 document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
-                '<div class="alert alert-danger alert-dismissible">' +
-                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-                '<h5><i class="icon fas fa-ban"></i> Revise los siguientes campos!</h5>' + data.message + '</div>';
-            }
-        })
-        .catch(error => {
-            document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
-            '<div class="alert alert-danger alert-dismissible">' +
-            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-            '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
-            'Error al modificar proveedor. Por favor, inténtelo de nuevo.</div>';
-        });
+                    '<div class="alert alert-danger alert-dismissible">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                    '<h5><i class="icon fas fa-ban"></i> Alert!</h5>' +
+                    'Error al modificar proveedor. Por favor, inténtelo de nuevo.</div>';
+            });
     }
     return false;
 }
@@ -431,19 +511,19 @@ function eliminarProveedor(cedula) {
             cedula: cedula
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            Swal.fire("Eliminado", data.message, "success").then(() => {
-                tbl_prov.ajax.reload();
-            });
-        } else {
-            Swal.fire("Error", `No se pudo eliminar el proveedor: ${data.message}`, "error");
-        }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire("Eliminado", data.message, "success").then(() => {
+                    tbl_prov.ajax.reload();
+                });
+            } else {
+                Swal.fire("Error", `No se pudo eliminar el proveedor: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            Swal.fire("Error", 'Error: ' + error, "error");
+        });
 }
 
 

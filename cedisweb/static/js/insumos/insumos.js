@@ -2,9 +2,9 @@
 function ModalRegistroInsumo() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     $("#modal_registro_insumo").modal({ backdrop: 'static', keyboard: false });
-    cargar_select_provs('select_prov').then(() => { 
-        $("#modal_registro_insumo").modal('show'); 
-    }).catch(() =>{ 
+    cargar_select_provs('select_prov').then(() => {
+        $("#modal_registro_insumo").modal('show');
+    }).catch(() => {
         alert('No se pudo cargar los proveedores correctamente.');
     });
 }
@@ -29,68 +29,145 @@ var csrftoken = getCookie('csrftoken');
 
 var tbl_insumo;
 function listar_insumos() {
-    tbl_insumo = $("#tabla_insumo").DataTable({
-        "pageLength": 10,
-        "destroy": true,
-        "processing": true,
-        "deferRender": true,
-        "serverSide": true,
-        "ajax": {
-            "url": "/listar_insumos/",
-            "type": 'POST',
-            "headers": { "X-CSRFToken": getCookie('csrftoken') },
-            "dataSrc": "data"
-        },
-        "columns": [
-            { "defaultContent": "" },
-            { "data": "codigo" },
-            { "data": "nombrep" },
-            { "data": "cantidad" },
-            { "data": "nombre_prov" },
-            { "data": "descripcion" },
-            { "defaultContent": "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='eliminar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>" },
-        ],
-        "language": {
-            "url": languageUrl
-        },
-        "dom": '<"top"B><"second"lf>rt<"bottom"ip>',
-        "buttons": [
-            {
-                extend: 'excelHtml5',
-                text: '<i class="fas fa-file-excel"></i> ',
-                titleAttr: 'Exportar a Excel',
-                className: 'btn btn-success'
-            },
-            {
-                extend: 'pdfHtml5',
-                text: '<i class="fas fa-file-pdf"></i> ',
-                titleAttr: 'Exportar a PDF',
-                className: 'btn btn-danger'
-            },
-            {
-                extend: 'print',
-                text: '<i class="fa fa-print"></i> ',
-                titleAttr: 'Imprimir',
-                className: 'btn btn-info'
-            },
-            {
-                extend: 'copyHtml5',
-                text: '<i class="fa fa-copy"></i> ',
-                titleAttr: 'Copiar',
-                className: 'btn btn-copy'
-            }
-        ],
-        select: true
-    });
+    $.getJSON('/media/logo.json', function (data) {
+        var logoCedis = data.logoCedis;
 
-    tbl_insumo.on('draw.dt', function () {
-        var PageInfo = $("#tabla_insumo").DataTable().page.info();
-        tbl_insumo.column(0, { page: 'current' }).nodes().each(function (cell, i) {
-            cell.innerHTML = i + 1 + PageInfo.start;
+        tbl_insumo = $("#tabla_insumo").DataTable({
+            "pageLength": 10,
+            "destroy": true,
+            "processing": true,
+            "deferRender": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "/listar_insumos/",
+                "type": 'POST',
+                "headers": { "X-CSRFToken": getCookie('csrftoken') },
+                "dataSrc": "data"
+            },
+            "columns": [
+                { "defaultContent": "" },
+                { "data": "codigo" },
+                { "data": "nombrep" },
+                { "data": "cantidad" },
+                { "data": "nombre_prov" },
+                { "data": "descripcion" },
+                { "defaultContent": "<button class='btn btn-primary btn-sm editar'><i class='fa fa-edit'></i></button>&nbsp;<button class='eliminar btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>" }
+            ],
+            "language": {
+                "url": languageUrl
+            },
+            "dom": '<"top"B><"second"lf>rt<"bottom"ip>',
+            "buttons": [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fas fa-file-excel"></i> ',
+                    titleAttr: 'Exportar a Excel',
+                    className: 'btn btn-success',
+                    filename: 'insumos',
+                    title: 'Listado de Insumos',
+                    customize: function (xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        var sheetData = $(sheet).find('sheetData');
+
+                        var firstRow = $(sheetData).find('row[r="1"]');
+                        var firstCell = $(firstRow).find('c[r="A1"]');
+
+                        var is = $('<is>');
+                        var t = $('<t>').text('Listado de Insumos');
+                        is.append(t);
+
+                        $(firstCell).append(is);
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="fas fa-file-pdf"></i> ',
+                    titleAttr: 'Exportar a PDF',
+                    className: 'btn btn-danger',
+                    filename: 'insumos',
+                    title: 'Listado de Insumos',
+                    customize: function (doc) {
+
+                        doc.pageSize = 'A4';
+                        doc.pageMargins = [20, 60, 20, 40];
+                        doc.content.splice(0, 1, {
+                            text: [
+                                { text: 'CEDIS C.A\n', fontSize: 18, alignment: 'center', bold: true },
+                                { text: 'Listado de Insumos\n', fontSize: 14, alignment: 'center', bold: true },
+                                { text: 'Fecha: ' + new Date().toLocaleDateString() + '\n\n', fontSize: 10, alignment: 'center' }
+                            ],
+                            alignment: 'center'
+                        });
+                        doc['header'] = function () {
+                            return {
+                                columns: [
+                                    {
+                                        image: logoCedis,
+                                        width: 100
+                                    },
+                                    {
+                                        alignment: 'right',
+                                        text: 'Listado de Insumos\nCEDIS C.A',
+                                        fontSize: 12,
+                                        margin: [0, 20]
+                                    }
+                                ],
+                                margin: [10, 10]
+                            };
+                        };
+                        doc['footer'] = function (page, pages) {
+                            return {
+                                columns: [
+                                    {
+                                        alignment: 'right',
+                                        text: ['Página ', { text: page.toString() }, ' de ', { text: pages.toString() }]
+                                    }
+                                ],
+                                margin: [10, 10]
+                            };
+                        };
+                        doc.defaultStyle.fontSize = 12;
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="fa fa-print"></i> ',
+                    titleAttr: 'Imprimir',
+                    className: 'btn btn-info',
+                    title: 'Listado de Insumos',
+                    customize: function (win) {
+                        $(win.document.body)
+                            .css('font-size', '12pt')
+                            .prepend(
+                                '<div style="display: flex; justify-content: space-between;">' +
+                                '<div><img src="' + logoCedis + '" style="height: 50px;" /></div>' +
+                                '<div style="text-align: right;">' +
+                                '<h3>CEDIS C.A</h3>' +
+                                '<h4>Listado de Insumos</h4>' +
+                                '<h5>Fecha: ' + new Date().toLocaleDateString() + '</h5>' +
+                                '</div></div>'
+                            );
+                    }
+                },
+                {
+                    extend: 'copyHtml5',
+                    text: '<i class="fa fa-copy"></i> ',
+                    titleAttr: 'Copiar',
+                    className: 'btn btn-copy',
+                    title: 'Listado de Insumos'
+                }
+            ],
+            select: true
+        });
+
+        tbl_insumo.on('draw.dt', function () {
+            var PageInfo = $("#tabla_insumo").DataTable().page.info();
+            tbl_insumo.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + PageInfo.start;
+            });
         });
     });
 }
-
 
 // CARGAR PROVEEDORES EN SELECT
 function cargar_select_provs(selectElementId) {
@@ -100,7 +177,7 @@ function cargar_select_provs(selectElementId) {
             type: 'POST',
             headers: { "X-CSRFToken": getCookie('csrftoken') },
         }).done(function (resp) {
-            console.log("Respuesta del servidor:", resp);  
+            console.log("Respuesta del servidor:", resp);
 
             try {
                 if (resp.proveedores) {
@@ -108,7 +185,7 @@ function cargar_select_provs(selectElementId) {
                     select.empty();
                     $.each(resp.proveedores, function (index, proveedor) {
                         select.append($('<option>', {
-                            value: proveedor.cedula_prov,  
+                            value: proveedor.cedula_prov,
                             text: proveedor.nombre_prov + ' ' + proveedor.apellido_prov
                         }));
                     });
@@ -159,10 +236,10 @@ function validarInput(codigo, nombrep, stock, descripcion, existeCodigo) {
         }
     };
 
-    validarCampo(codigo, document.getElementById(codigo).value, valor => ({valido: valor.length > 0, mensaje: "El código no puede estar vacío"}));
-    validarCampo(nombrep, document.getElementById(nombrep).value, valor => ({valido: valor.length > 0, mensaje: "El nombre no puede estar vacío"}));
-    validarCampo(stock, document.getElementById(stock).value, valor => ({valido: valor.length > 0 && !isNaN(valor) && parseInt(valor) > 0, mensaje: "El stock debe ser un número positivo"}));
-    validarCampo(descripcion, document.getElementById(descripcion).value, valor => ({valido: valor.length > 0, mensaje: "La descripción no puede estar vacía"}));
+    validarCampo(codigo, document.getElementById(codigo).value, valor => ({ valido: valor.length > 0, mensaje: "El código no puede estar vacío" }));
+    validarCampo(nombrep, document.getElementById(nombrep).value, valor => ({ valido: valor.length > 0, mensaje: "El nombre no puede estar vacío" }));
+    validarCampo(stock, document.getElementById(stock).value, valor => ({ valido: valor.length > 0 && !isNaN(valor) && parseInt(valor) > 0, mensaje: "El stock debe ser un número positivo" }));
+    validarCampo(descripcion, document.getElementById(descripcion).value, valor => ({ valido: valor.length > 0, mensaje: "La descripción no puede estar vacía" }));
 
     if (existeCodigo) {
         $("#" + codigo).removeClass("is-valid").addClass("is-invalid");
@@ -290,25 +367,25 @@ function Modificar_Insumo() {
             descripcion: descripcion
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
-                $("#modal_editar_insumo").modal('hide');
-                tbl_insumo.ajax.reload();
-                traer_notificaciones()
-            });
-        } else {
-            if (data.message.includes("El código ya existe")) {
-                validarInput("txt_cod_editar", "txt_nombre_editar", "txt_stock_editar", "txt_des_editar", true);
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
+                    $("#modal_editar_insumo").modal('hide');
+                    tbl_insumo.ajax.reload();
+                    traer_notificaciones()
+                });
             } else {
-                Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+                if (data.message.includes("El código ya existe")) {
+                    validarInput("txt_cod_editar", "txt_nombre_editar", "txt_stock_editar", "txt_des_editar", true);
+                } else {
+                    Swal.fire("Error", `No se pudieron actualizar los datos: ${data.message}`, "error");
+                }
             }
-        }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
-    });
+        })
+        .catch(error => {
+            Swal.fire("Error", 'Error: ' + error, "error");
+        });
 }
 
 //ELIMINAR INSUMOS
@@ -346,18 +423,18 @@ function eliminarInsumo(codigo) {
             codigo: codigo
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            Swal.fire("Eliminado", data.message, "success").then(() => {
-                tbl_insumo.ajax.reload();
-            });
-        } else {
-            Swal.fire("Error", `No se pudo eliminar el insumo: ${data.message}`, "error");
-        }
-    })
-    .catch(error => {
-        Swal.fire("Error", 'Error: ' + error, "error");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire("Eliminado", data.message, "success").then(() => {
+                    tbl_insumo.ajax.reload();
+                });
+            } else {
+                Swal.fire("Error", `No se pudo eliminar el insumo: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            Swal.fire("Error", 'Error: ' + error, "error");
+        });
 }
 
