@@ -192,9 +192,15 @@ function listar_pacientes() {
             ],
             select: true,
         });
+
+        tbl_pacientes.on('draw.dt', function () {
+            var PageInfo = $("#tabla_pacientes").DataTable().page.info();
+            tbl_pacientes.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + PageInfo.start;
+            });
+        });
     });
 }
-
 
 //LIMPIAR MODAL
 function limpiar_modal_paciente() {
