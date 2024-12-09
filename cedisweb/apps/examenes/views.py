@@ -1152,6 +1152,77 @@ def serve_exam_file(request, filename):
         return response
     else:
         raise Http404("Archivo no encontrado")
+    
+
+##Conteo de Examenes y Resultados
+def contar_examenes_y_resultados(fecha_inicio, fecha_fin):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM realizar_examen WHERE realizarexamen_fregistro BETWEEN %s AND %s) AS examenes_realizados,
+                (SELECT COUNT(*) FROM resultado WHERE resultado_fregistro BETWEEN %s AND %s) AS resultados_dados;
+        """, [fecha_inicio, fecha_fin, fecha_inicio, fecha_fin])
+        row = cursor.fetchone()
+        return {
+            'examenes_realizados': row[0],
+            'resultados_dados': row[1]
+        }
+
+def contar_examenes_y_resultados_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            fecha_inicio = data.get('fecha_inicio')
+            fecha_fin = data.get('fecha_fin')
+
+            if not fecha_inicio or not fecha_fin:
+                return JsonResponse({'error': 'Fechas no proporcionadas'}, status=400)
+
+            with connection.cursor() as cursor:
+                # Consulta para exámenes realizados
+                cursor.execute("""
+                    SELECT
+                        COUNT(*) AS cantidad,
+                        examen.examen_nombre
+                    FROM 
+                        realizar_examen_detalle
+                    INNER JOIN
+                        examen ON realizar_examen_detalle.examen_id = examen.id
+                    INNER JOIN
+                        realizar_examen ON realizar_examen_detalle.realizarexamen_id = realizar_examen.id
+                    WHERE 
+                        realizar_examen.realizarexamen_fregistro BETWEEN %s AND %s
+                    GROUP BY 
+                        examen.examen_nombre;
+                """, [fecha_inicio, fecha_fin])
+                examenes_rows = cursor.fetchall()
+
+                # Consulta para resultados
+                cursor.execute("""
+                    SELECT
+                        COUNT(*)
+                    FROM 
+                        resultado
+                    WHERE 
+                        resultado_fregistro BETWEEN %s AND %s;
+                """, [fecha_inicio, fecha_fin])
+                resultados_dados = cursor.fetchone()[0]
+
+            resultados = {
+                'examenes_realizados': sum(row[0] for row in examenes_rows),
+                'resultados_dados': resultados_dados,
+                'data': [{'examen_nombre': row[1], 'cantidad': row[0]} for row in examenes_rows]
+            }
+            return JsonResponse(resultados)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido'}, status=400)
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+
+
+
 
 
 

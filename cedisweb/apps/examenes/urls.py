@@ -56,5 +56,6 @@ urlpatterns = [
     path('guardar_detalle_analisis/', views.guardar_detalle_analisis, name='guardar_detalle_analisis'),
     path('listar_resultados_editar/', views.listar_resultados_editar, name='listar_resultados_editar'),
     path('serve-file/<path:filename>/', views.serve_exam_file, name='serve_exam_file'),
-    path('actualizar_examen/', views.actualizar_examen, name='actualizar_examen')
+    path('actualizar_examen/', views.actualizar_examen, name='actualizar_examen'),
+    path('contar_examenes_y_resultados_view/', views.contar_examenes_y_resultados_view, name='contar_examenes_y_resultados_view'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

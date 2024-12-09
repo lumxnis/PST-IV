@@ -53,7 +53,7 @@ function listar_resultados() {
                 "data": "resultado_estatus",
                 render: function (data, type, row) {
                     if (data === '1') {
-                        return '<span class="badge bg-primary">ENTREGADO</span>';
+                        return '<span class="badge bg-success">ENTREGADO</span>';
                     } else {
                         return '<span class="badge bg-danger">FINALIZADO</span>';
                     }
