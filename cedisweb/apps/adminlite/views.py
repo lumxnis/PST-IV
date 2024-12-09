@@ -16,6 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from datetime import datetime
 import json
+from django.contrib.auth import views as auth_views
+from .forms import CustomAuthenticationForm
 
 #Inicio
 def home(request):
@@ -24,6 +26,33 @@ def home(request):
 #Horarios
 def horarios(request):
     return render(request, 'inicio/horarios.html')
+
+##Login
+@csrf_exempt
+def custom_login_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                try:
+                    profile = Profile.objects.get(username=username)
+                    if profile.usu_status == 'INACTIVO' or (profile.rol and profile.rol.rol_estatus == 'INACTIVO'):
+                        return JsonResponse({'error': 'Su usuario está desactivado. Comuníquese con el administrador.'}, status=403)
+                    else:
+                        login(request, user)
+                        return JsonResponse({'success': 'Inicio de sesión exitoso.'}, status=200)
+                except Profile.DoesNotExist:
+                    return JsonResponse({'error': 'Usuario no encontrado.'}, status=404)
+            else:
+                return JsonResponse({'error': 'Credenciales incorrectas, intente de nuevo.'}, status=401)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido.'}, status=400)
+    return JsonResponse({'error': 'Método no permitido.'}, status=405)
 
 ##Logout
 def exit(request):

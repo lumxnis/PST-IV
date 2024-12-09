@@ -10,7 +10,7 @@ urlpatterns = [
     path('horarios/', views.horarios, name="horarios"),
 
     ##Login
-    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('custom_login_view/', views.custom_login_view, name='custom_login_view'),
 
     ##Logout
     path('exit/', views.exit, name="exit"),
