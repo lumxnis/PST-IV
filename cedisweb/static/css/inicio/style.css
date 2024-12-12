@@ -1,0 +1,285 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.carousel-item {
+    height: 80vh;
+    min-height: 300px;
+}
+
+.carousel-caption {
+    bottom: 80px;
+    z-index: 2;
+}
+
+.carousel-caption h2 {
+    margin-top: 15px;
+    font-size: 45px;
+    margin-bottom: 35px;
+    color: #cdcdcd;
+}
+
+.carousel-caption h1 {
+    margin-top: 15px;
+    font-size: 45px;
+    text-transform: uppercase;
+    margin-bottom: 55px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.carousel-caption p {
+    margin-bottom: 55px;
+    margin: auto;
+    font-size: 22px;
+    line-height: 1.9;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.carousel-inner::before {
+    background-color: rgba(0, 0, 0, 0.3);
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.services {
+    background-image: url("/static/img/world-science-day-research-innovation-elements.jpg");
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.services h2 {
+    text-align: justify;
+    margin-top: 35px;
+    font-size: 35px;
+    margin-bottom: 10px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.col-12 {
+    margin-bottom: 35px;
+}
+
+.about {
+    display: flex;
+}
+
+.general-1 {
+    width: 50%;
+    padding: 100px 50px 50px 100px;
+    background-color: #100f0f;
+}
+
+.general-1 h2 {
+    color: #fff;
+    font-size: 30px;
+    text-align: center;
+}
+
+.general-2 {
+    background-image: url("/static/img/qualite-en-laboratoire-1150x576.jpg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 50%;
+}
+
+.general-3 {
+    background-image: url("/static/img/world-science-day-research-innovation-elements.jpg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 50%;
+}
+
+h3 {
+    font-size: 45px;
+    line-height: 20px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+}
+
+.p-general {
+    font-size: 18px;
+    color: #ebebeb;
+    padding: 20px;
+    margin: 25px 0 35px 0;
+    line-height: 1.5em;
+}
+
+.btn-1 {
+    display: inline-block;
+    padding: 11px 25px;
+    background-color: #CE9678;
+    color: #f9fafc;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.container-b {
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.btn {
+    cursor: pointer;
+    transition: background-color 0.3s;
+    color: #fff;
+}
+
+.btn:hover {
+    color: #7c7d7f;
+}
+
+.p-general-1 {
+    font-size: 18px;
+    color: #ebebeb;
+    padding: 22px;
+    margin: 25px 0 15px 0;
+    line-height: 1.5em;
+    text-align: center;
+}
+
+.general-1 h2 {
+    font-size: 25px;
+    line-height: 30px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+}
+
+.navbar-nav a {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.navbar-dark .navbar-brand {
+    color: #fff;
+    font-size: 25px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.navbar-light .navbar-brand:focus,
+.navbar-light .navbar-brand:hover {
+    color: #000;
+}
+
+.w-100 {
+    height: 100vh;
+}
+
+.navbar-toggler {
+    padding: 1px 5px;
+    font-size: 18px;
+    line-height: 0.3;
+}
+
+.services .card-body i {
+    font-size: 50px;
+}
+
+.team .card-body i {
+    font-size: 20px;
+}
+
+.team {
+    background-image: url("/static/img/lab-1.jpg");
+}
+
+.card h3 {
+    font-size: 25px;
+}
+
+.img-fluid {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.team h2 {
+    font-size: 25px;
+    line-height: 30px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.footer p {
+    font-size: 25px;
+    line-height: 30px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.footer .telefono {
+    font-size: 10px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+}
+
+.footer {
+    background-color: #100f0f;
+}
+
+@media(max-width: 767px) {
+    .navbar-nav {
+        text-align: justify;
+    }
+
+    .carousel-item {
+        height: 70vh;
+    }
+
+    .w-100 {
+        height: 70vh;
+    }
+
+    .carousel-caption {
+        bottom: 50px;
+    }
+
+    .carousel-caption h1,
+    .carousel-caption h2,
+    .carousel-caption p {
+        font-size: 20px;
+    }
+
+    .about {
+        flex-direction: column;
+        background-image: url("/static/img/view-laboratory-equipment-neon-lights (1).jpg");
+    }
+
+    .footer h3 {
+        font-size: 20px;
+    }
+}
