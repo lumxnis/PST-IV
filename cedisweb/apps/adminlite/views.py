@@ -140,13 +140,16 @@ def listar_usuarios(request):
 @login_required
 def cargar_roles(request):
     if request.method == 'POST':
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM sp_listar_select_rol()")
-            roles = cursor.fetchall()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT rol_id, rol_nombre, rol_estatus FROM sp_listar_select_rol()")
+                roles = cursor.fetchall()
 
-        roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles if rol[0] != 3]
+            roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles if rol[2] == 'ACTIVO' and rol[0] != 3]
 
-        return JsonResponse({'roles': roles_list})
+            return JsonResponse({'roles': roles_list})
+        except Exception as e:
+            return JsonResponse({'error': 'Error al cargar los roles: ' + str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=400)
 
@@ -364,7 +367,7 @@ def obtener_estatus(request):
     if request.method == 'GET':
         try:
             estatus_choices = Rol.ROL_ESTATUS_CHOICES
-            estatus_data = [{'value': choice[0], 'text': choice[1]} for choice in estatus_choices]
+            estatus_data = [{'value': choice[0], 'text': choice[1].upper()} for choice in estatus_choices]
 
             return JsonResponse({'status': 'success', 'data': estatus_data})
         except Exception as e:

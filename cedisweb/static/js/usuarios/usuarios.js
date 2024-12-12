@@ -2,7 +2,7 @@
 function ModalRegistroUsuarios() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
     $("#modal_registro_usuario").modal({ backdrop: 'static', keyboard: false });
-    cargar_select_rol('select_rol').then(() => {
+    cargar_select_rol('select_rol', null, false).then(() => {
         $("#modal_registro_usuario").modal('show'); 
     }).catch(() =>{ 
         alert('No se pudo cargar los roles correctamente.');
@@ -85,7 +85,6 @@ function listar_usuarios() {
     });
 }
 
-
 //Modal Editar Usuario
 $(document).ready(function () {
     $('#tabla_usuario').on('click', '.editar', function () {
@@ -95,22 +94,18 @@ $(document).ready(function () {
             data = tbl_usuario.row(this).data();
         }
 
-        cargar_select_rol('select_rol_editar').then(() => {
-            $("#select_rol_editar option").each(function () {
-                if ($(this).text() === data.rol_nombre) {
-                    $(this).prop("selected", true);
-                }
-            });
-            $("#select_rol_editar").trigger('change');
-            $(".form-control").removeClass("is-invalid").removeClass("is-valid");
-            $("#modal_editar_usuario").modal({ backdrop: 'static', keyboard: false });
-            $("#modal_editar_usuario").modal('show');
-        }).catch(() => {
-            alert('No se pudo cargar los roles correctamente.');
-        });
         document.getElementById('txt_idusuario_editar').value = data.id;
         document.getElementById('txt_usuario_editar').value = data.username;
-        document.getElementById('txt_email_editar').value = data.email;
+        document.getElementById('txt_email_editar').value = data.email
+
+        var rolActual =  data.rol_nombre;
+        console.log(rolActual)
+
+        cargar_select_rol('select_rol_editar', rolActual, true)
+
+        $(".form-control").removeClass("is-invalid").removeClass("is-valid");
+        $("#modal_editar_usuario").modal({ backdrop: 'static', keyboard: false });
+        $("#modal_editar_usuario").modal('show');
     });
 });
 
@@ -159,35 +154,52 @@ $('#tabla_usuario').on('click', '.desactivar', function () {
     });
 })
 
-
 // Cargar Roles
-function cargar_select_rol(selectElementId) {
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: '/cargar_roles/',
-            type: 'POST',
-            headers: { "X-CSRFToken": getCookie('csrftoken') },
-        }).done(function (resp) {
-            if (resp.roles) {
-                var select = $('#' + selectElementId);
-                select.empty();
-                $.each(resp.roles, function (index, role) {
-                    select.append($('<option>', {
-                        value: role.rol_id,
-                        text: role.rol_nombre
-                    }));
-                });
-                resolve();
-            } else {
-                alert('Error al cargar los roles');
-                reject();
+function cargar_select_rol(selectElementId, rolActual, esEdicion = false) {
+    var select = $('#' + selectElementId);
+    select.empty();
+
+    fetch('/cargar_roles/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.roles) {
+            var rolEncontrado = false;
+            data.roles.forEach(function(role) {
+                select.append(new Option(role.rol_nombre, role.rol_nombre)); // Usar rol_nombre como valor y texto
+                if (rolActual !== null && rolActual !== undefined && role.rol_nombre === rolActual) {
+                    rolEncontrado = true;
+                }
+            });
+
+            if (rolActual !== null && rolActual !== undefined) {
+                if (esEdicion) {
+                    if (!rolEncontrado) {
+                        setTimeout(function() {
+                            Swal.fire({
+                                title: 'Alerta',
+                                text: 'El rol seleccionado está inactivo o no existe.',
+                                icon: 'warning',
+                                confirmButtonText: 'Entendido'
+                            });
+                        }, 1000);
+                    } else {
+                        select.val(rolActual).trigger('change');
+                    }
+                } else {
+                    select.val(rolActual).trigger('change');
+                }
             }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            console.error("Error al realizar la solicitud AJAX:", textStatus, errorThrown);
-            alert('Error al cargar los roles');
-            reject();
-        });
-    });
+        } else {
+            console.error("Error al cargar los roles: ", data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
 }
 
 //Registrar Usuario

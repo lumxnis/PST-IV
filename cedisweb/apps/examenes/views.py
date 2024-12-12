@@ -67,7 +67,7 @@ def listar_examenes(request):
 def obtener_analisis(request):
     if request.method == 'GET':
         try:
-            analisis_queryset = Analisis.objects.all()
+            analisis_queryset = Analisis.objects.filter(analisis_estatus='ACTIVO')
             analisis_list = [
                 {"value": analisis.id, "text": analisis.analisis_nombre}
                 for analisis in analisis_queryset
@@ -119,7 +119,7 @@ def registrar_examen(request):
 def cargar_estatus_analisis(request):
     if request.method == 'GET':
         try:
-            estatus_list = [{'value': choice[0], 'text': choice[1]} for choice in Examen.EXAMEN_ESTATUS_CHOICES]
+            estatus_list = [{'value': choice[0], 'text': choice[1].upper()} for choice in Examen.EXAMEN_ESTATUS_CHOICES]
 
             response = {
                 "status": "success",
@@ -256,7 +256,7 @@ def obtener_estatus_analisis(request):
     if request.method == 'GET':
         try:
             estatus_choices = Analisis.ANALISIS_ESTATUS_CHOICES
-            estatus_data = [{'value': choice[0], 'text': choice[1]} for choice in estatus_choices]
+            estatus_data = [{'value': choice[0], 'text': choice[1].upper()} for choice in estatus_choices]
 
             return JsonResponse({'status': 'success', 'data': estatus_data})
         except Exception as e:
@@ -321,8 +321,12 @@ def listar_medicos(request):
 @csrf_exempt
 def obtener_especialidades(request):
     if request.method == 'GET':
-        especialidades = Especialidad.objects.all().values('especialidad_id', 'especialidad_nombre')
-        return JsonResponse({'status': 'success', 'data': list(especialidades)}, safe=False)
+        try:
+            especialidades = Especialidad.objects.filter(especialidad_estatus='ACTIVO').values('especialidad_id', 'especialidad_nombre')
+            return JsonResponse({'status': 'success', 'data': list(especialidades)}, safe=False)
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
@@ -665,13 +669,16 @@ def obtener_examenes_por_analisis(request):
         analisis_id = request.POST.get('id')
         try:
             analisis = Analisis.objects.get(id=analisis_id)
-            examenes = Examen.objects.filter(analisis_id=analisis.id)
+            examenes = Examen.objects.filter(analisis_id=analisis.id, examen_estatus='ACTIVO')
             examenes_options = [[examen.id, examen.examen_nombre] for examen in examenes]
             return JsonResponse({'status': 'success', 'data': examenes_options})
         except Analisis.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Análisis no encontrado'})
-    print("Método no permitido")  
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
 
 
 ##Registro Realizar Examen

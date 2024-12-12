@@ -1,7 +1,7 @@
 // ABRIR FORMULARIO DE REGISTRO DE EXAMENES
 function ModalRegistroExamenes() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
-    cargarAnalisisSelect("select_analisis", null);
+    cargarAnalisisSelect("select_analisis", null, false);
     $("#modal_registro_examen").modal({ backdrop: 'static', keyboard: false });
     $("#modal_registro_examen").modal('show');
 }
@@ -70,10 +70,10 @@ function listar_examenes() {
     });
 }
 
-//CARGAR ANÁLISIS
-function cargarAnalisisSelect(selectorId, analisisActual) {
+//CARGAR ANALISIS
+function cargarAnalisisSelect(selectorId, analisisActual, esEdicion = false) {
     var select = $("#" + selectorId);
-    select.empty(); 
+    select.empty();
 
     fetch('/obtener_analisis/', {
         method: 'GET',
@@ -85,12 +85,27 @@ function cargarAnalisisSelect(selectorId, analisisActual) {
     .then(data => {
         if (data.status === 'success') {
             var analisisOptions = data.data;
+            var analisisEncontrado = false;
             analisisOptions.forEach(function(option) {
                 select.append(new Option(option.text, option.value));
+                if (analisisActual !== null && analisisActual !== undefined && option.value === analisisActual) {
+                    analisisEncontrado = true;
+                }
             });
 
             if (analisisActual !== null && analisisActual !== undefined) {
-                select.val(analisisActual).trigger('change');
+                if (esEdicion && !analisisEncontrado) {
+                    setTimeout(function() {
+                        Swal.fire({
+                            title: 'Alerta',
+                            text: 'El análisis seleccionado está inactivo o no existe.',
+                            icon: 'warning',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }, 1000);
+                } else {
+                    select.val(analisisActual).trigger('change');
+                }
             }
         } else {
             console.error("Error al obtener análisis: ", data.message);
@@ -191,7 +206,7 @@ $('#tabla_examenes').on('click', '.editar', function () {
     var analisisActual = data.analisis_id;
     var estatusActual = data.examen_estatus;
 
-    cargarAnalisisSelect("select_analisis_editar", analisisActual);
+    cargarAnalisisSelect("select_analisis_editar", analisisActual, true);
     cargarEstatusSelect(estatusActual);
 
     $("#modal_editar_examen").modal({ backdrop: 'static', keyboard: false });

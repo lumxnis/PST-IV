@@ -1,7 +1,7 @@
 // ABRIR FORMULARIO DE REGISTRO DE MEDICOS
 function ModalRegistroMedico() {
     $(".form-control").removeClass("is-invalid").removeClass("is-valid");
-    cargarEspecialidadesSelect('select_especialidad')
+    cargarEspecialidadesSelect('select_especialidad', null, false)
     cargar_select_rol('select_rol')
     document.getElementById('div_mensaje_error').innerHTML = '';
     $("#modal_registro_medico").modal({ backdrop: 'static', keyboard: false });
@@ -9,7 +9,7 @@ function ModalRegistroMedico() {
 }
 
 //CARGAR ESPECIALIDADES EN EL FORMULARIO
-function cargarEspecialidadesSelect(selectorId, especialidadActual) {
+function cargarEspecialidadesSelect(selectorId, especialidadActual, esEdicion = false) {
     var select = $("#" + selectorId);
     select.empty(); 
 
@@ -23,12 +23,27 @@ function cargarEspecialidadesSelect(selectorId, especialidadActual) {
     .then(data => {
         if (data.status === 'success') {
             var especialidadesOptions = data.data;
+            var especialidadEncontrada = false;
             especialidadesOptions.forEach(function(option) {
                 select.append(new Option(option.especialidad_nombre, option.especialidad_id));
+                if (especialidadActual !== null && especialidadActual !== undefined && option.especialidad_id === especialidadActual) {
+                    especialidadEncontrada = true;
+                }
             });
 
             if (especialidadActual !== null && especialidadActual !== undefined) {
-                select.val(especialidadActual).trigger('change');
+                if (esEdicion && !especialidadEncontrada) {
+                    setTimeout(function() {
+                        Swal.fire({
+                            title: 'Alerta',
+                            text: 'La especialidad seleccionada está inactiva o no existe.',
+                            icon: 'warning',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }, 1000);
+                } else {
+                    select.val(especialidadActual).trigger('change');
+                }
             }
         } else {
             console.error("Error al obtener especialidades: ", data.message);
@@ -369,7 +384,7 @@ $('#tabla_medicos').on('click', '.editar', function () {
             $("#txt_dir_editar").val(data.medico_direccion);
 
             var especialidadActual = data.especialidad_id;
-            cargarEspecialidadesSelect('select_especialidad_editar', especialidadActual);
+            cargarEspecialidadesSelect('select_especialidad_editar', especialidadActual, true);
             document.getElementById('div_mensaje_error_editar').innerHTML = '';
 
             $("#txt_ci_editar").attr("data-id", medico_id);
