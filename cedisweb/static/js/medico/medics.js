@@ -337,7 +337,7 @@ function registrar_medico() {
     .then(data => {
         if (data.status === 'success') {
             limpiar_modal_medico();
-            Swal.fire("Modificación Exitosa", data.message, "success").then((value) => {
+            Swal.fire("Registro Exitoso", data.message, "success").then((value) => {
                 $('#modal_registro_medico').modal('hide');
                 tbl_medicos.ajax.reload();
             });

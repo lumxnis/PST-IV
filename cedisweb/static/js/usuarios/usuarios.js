@@ -99,7 +99,6 @@ $(document).ready(function () {
         document.getElementById('txt_email_editar').value = data.email
 
         var rolActual =  data.rol_nombre;
-        console.log(rolActual)
 
         cargar_select_rol('select_rol_editar', rolActual, true)
 
@@ -154,7 +153,7 @@ $('#tabla_usuario').on('click', '.desactivar', function () {
     });
 })
 
-// Cargar Roles
+//Cargar Roles
 function cargar_select_rol(selectElementId, rolActual, esEdicion = false) {
     var select = $('#' + selectElementId);
     select.empty();
@@ -169,34 +168,22 @@ function cargar_select_rol(selectElementId, rolActual, esEdicion = false) {
     .then(response => response.json())
     .then(data => {
         if (data.roles) {
-            var rolEncontrado = false;
             data.roles.forEach(function(role) {
-                select.append(new Option(role.rol_nombre, role.rol_nombre)); // Usar rol_nombre como valor y texto
-                if (rolActual !== null && rolActual !== undefined && role.rol_nombre === rolActual) {
-                    rolEncontrado = true;
+                if (esEdicion || role.rol_id != 3) {
+                    var option = new Option(role.rol_nombre, role.rol_id);
+                    select.append(option);
+
+                    if (rolActual !== null && rolActual !== undefined && role.rol_nombre === rolActual) {
+                        option.selected = true;
+                    }
                 }
             });
 
-            if (rolActual !== null && rolActual !== undefined) {
-                if (esEdicion) {
-                    if (!rolEncontrado) {
-                        setTimeout(function() {
-                            Swal.fire({
-                                title: 'Alerta',
-                                text: 'El rol seleccionado está inactivo o no existe.',
-                                icon: 'warning',
-                                confirmButtonText: 'Entendido'
-                            });
-                        }, 1000);
-                    } else {
-                        select.val(rolActual).trigger('change');
-                    }
-                } else {
-                    select.val(rolActual).trigger('change');
-                }
+            if (rolActual !== null && rolActual !== undefined && !select.val()) {
+                select.val(rolActual).trigger('change');
             }
         } else {
-            console.error("Error al cargar los roles: ", data.message);
+            console.error("Error al cargar los roles: ", data.error);
         }
     })
     .catch(error => console.error('Error:', error));

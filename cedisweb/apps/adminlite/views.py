@@ -145,13 +145,14 @@ def cargar_roles(request):
                 cursor.execute("SELECT rol_id, rol_nombre, rol_estatus FROM sp_listar_select_rol()")
                 roles = cursor.fetchall()
 
-            roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles if rol[2] == 'ACTIVO' and rol[0] != 3]
+            roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles]
 
             return JsonResponse({'roles': roles_list})
         except Exception as e:
             return JsonResponse({'error': 'Error al cargar los roles: ' + str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=400)
+
 
 ## Registrar Usuario
 @login_required
