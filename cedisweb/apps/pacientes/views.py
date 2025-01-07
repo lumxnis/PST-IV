@@ -64,11 +64,15 @@ def listar_pacientes(request):
                     paciente_sexo,
                     date_joined
                 FROM public.paciente
-                WHERE CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) ILIKE %s
-                ORDER BY {order_column} DESC  
+                WHERE 
+                    paciente_dni ILIKE %s OR
+                    CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) ILIKE %s OR
+                    paciente_celular ILIKE %s OR
+                    paciente_sexo ILIKE %s
+                ORDER BY {order_column} {order_direction}
                 OFFSET %s LIMIT %s;
                 """
-                cursor.execute(query, [f'%{search_value}%', start, length])
+                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', start, length])
                 resultados = cursor.fetchall()
                 columnas = [col[0] for col in cursor.description]
 
@@ -86,7 +90,7 @@ def listar_pacientes(request):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT COUNT(*) FROM public.paciente;")
                 total_count = cursor.fetchone()[0]
-                cursor.execute("SELECT COUNT(*) FROM public.paciente WHERE CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) ILIKE %s;", [f'%{search_value}%'])
+                cursor.execute("SELECT COUNT(*) FROM public.paciente WHERE paciente_dni ILIKE %s OR CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) ILIKE %s OR paciente_celular ILIKE %s OR paciente_sexo ILIKE %s;", [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%'])
                 filtered_count = cursor.fetchone()[0]
 
             response = {

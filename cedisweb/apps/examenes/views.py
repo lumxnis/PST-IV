@@ -830,7 +830,7 @@ def resultados_examenes(request):
 def registro_resultado(request):
     return render(request, 'examenes/resultados_examenes_registro.html')
 
-##Listar Resultados
+## Listar Resultados
 @login_required
 @csrf_exempt
 def listar_resultado_examen(request):
@@ -838,15 +838,62 @@ def listar_resultado_examen(request):
         draw = int(request.POST.get('draw', 1))
         start = int(request.POST.get('start', 0))
         length = int(request.POST.get('length', 10))
+        search_value = request.POST.get('search[value]', '')
 
         try:
+
             with connection.cursor() as cursor:
                 cursor.execute("SELECT COUNT(*) FROM resultado")
                 total_count = cursor.fetchone()[0]
 
-                cursor.execute("SELECT * FROM sp_listar_resultado_examen() LIMIT %s OFFSET %s", [length, start])
+                query = """
+                SELECT 
+                    resultado.id,
+                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) as paciente,
+                    paciente.paciente_dni,
+                    usuario.username,
+                    resultado.resultado_fregistro,
+                    resultado.resultado_estatus::CHAR
+                FROM 
+                    resultado
+                INNER JOIN
+                    usuario ON resultado.usuario_id_id = usuario.id
+                INNER JOIN 
+                    realizar_examen ON resultado.realizarexamen_id_id = realizar_examen.id
+                INNER JOIN
+                    paciente ON realizar_examen.paciente_id_id = paciente.id
+                WHERE
+                    resultado.id::text ILIKE %s OR
+                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) ILIKE %s OR
+                    paciente.paciente_dni ILIKE %s OR
+                    usuario.username ILIKE %s OR
+                    resultado.resultado_fregistro::text ILIKE %s OR
+                    resultado.resultado_estatus::text ILIKE %s
+                LIMIT %s OFFSET %s;
+                """
+                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', length, start])
                 resultados = cursor.fetchall()
                 columnas = [col[0] for col in cursor.description]
+
+                cursor.execute("""
+                SELECT COUNT(*)
+                FROM 
+                    resultado
+                INNER JOIN
+                    usuario ON resultado.usuario_id_id = usuario.id
+                INNER JOIN 
+                    realizar_examen ON resultado.realizarexamen_id_id = realizar_examen.id
+                INNER JOIN
+                    paciente ON realizar_examen.paciente_id_id = paciente.id
+                WHERE
+                    resultado.id::text ILIKE %s OR
+                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) ILIKE %s OR
+                    paciente.paciente_dni ILIKE %s OR
+                    usuario.username ILIKE %s OR
+                    resultado.resultado_fregistro::text ILIKE %s OR
+                    resultado.resultado_estatus::text ILIKE %s
+                """, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%'])
+                filtered_count = cursor.fetchone()[0]
 
             data = [
                 {col: fila[i] for i, col in enumerate(columnas)}
@@ -856,7 +903,7 @@ def listar_resultado_examen(request):
             response = {
                 "draw": draw,
                 "recordsTotal": total_count,
-                "recordsFiltered": total_count,  
+                "recordsFiltered": filtered_count,
                 "data": data
             }
 
@@ -868,7 +915,6 @@ def listar_resultado_examen(request):
 
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
-
 
 ##LISTADO EXAMENES PENDIENTES
 @login_required
