@@ -45,6 +45,10 @@ def custom_login_view(request):
                         return JsonResponse({'error': 'Su usuario está desactivado. Comuníquese con el administrador.'}, status=403)
                     else:
                         login(request, user)
+                        if profile.rol:  # Verificar si profile.rol no es None
+                            request.session['ROL_ID'] = profile.rol.rol_id
+                        else:
+                            request.session['ROL_ID'] = None  # O manejar de acuerdo a tus necesidades
                         return JsonResponse({'success': 'Inicio de sesión exitoso.'}, status=200)
                 except Profile.DoesNotExist:
                     return JsonResponse({'error': 'Usuario no encontrado.'}, status=404)
