@@ -6,19 +6,19 @@
 
 {% load crispy_forms_tags %}
 
-<h3>LOGIN</h3>
+<link rel="stylesheet" href="{% static 'css/inicio/login.css' %}">
+
 
 <br>
 
 <form id="login-form" method="post">
     {% csrf_token %}
 
-    <div class="card mx-auto" style="width: 30rem;">
+    <div class="card mx-auto" style="width: 20rem;">
         <div class="card-body">
             <h5 class="card-title">Ingrese sus Credenciales</h5>
             {{ form|crispy }}
             <div id="error-message" class="alert alert-danger" role="alert" style="display: none;"></div>
-            <a href="{% url 'home' %}" class="card-link">Inicio</a>
             <button class="btn btn-sm btn-primary float-end" type="submit">Iniciar Sesión</button>
         </div>
     </div>

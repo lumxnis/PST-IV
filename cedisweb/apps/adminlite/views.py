@@ -111,9 +111,10 @@ def listar_usuarios(request):
 
             usuarios = Profile.objects.select_related('rol')
             if search_value:
-                usuarios = usuarios.filter(
-                    Q(username__icontains=search_value) | Q(email__icontains=search_value)
-                )
+                query = Q()
+                for column in column_map.values():
+                    query |= Q(**{f"{column}__icontains": search_value})
+                usuarios = usuarios.filter(query)
 
             if order_direction == 'asc':
                 usuarios = usuarios.order_by(order_column)

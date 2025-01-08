@@ -37,13 +37,10 @@ def listar_insumos(request):
 
             insumos = Productos.objects.all()
             if search_value:
-                insumos = insumos.filter(
-                    Q(codigo__icontains=search_value) |
-                    Q(nombrep__icontains=search_value) |
-                    Q(descripcion__icontains=search_value) |
-                    Q(proveedor__nombre_prov__icontains=search_value) |
-                    Q(proveedor__apellido_prov__icontains=search_value)
-                )
+                query = Q()
+                for column in column_map.values():
+                    query |= Q(**{f"{column}__icontains": search_value})
+                insumos = insumos.filter(query)
 
             # Ordenar los datos
             if order_direction == 'asc':

@@ -156,6 +156,14 @@ def registrar_paciente(request):
             if Paciente.objects.filter(paciente_dni=ci).exists():
                 errores.append('Ya existe un paciente registrado con esa cédula de identidad.')
 
+            # Validar que la fecha de nacimiento no sea mayor que la fecha actual
+            try:
+                fecha_nacimiento_dt = datetime.strptime(fecha_nacimiento, '%Y-%m-%d')
+                if fecha_nacimiento_dt > datetime.now():
+                    errores.append('La fecha de nacimiento no puede ser una fecha futura.')
+            except ValueError:
+                errores.append('El formato de la fecha de nacimiento es incorrecto. Debe ser YYYY-MM-DD.')
+
             if errores:
                 return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})
 
@@ -210,10 +218,9 @@ def modificar_paciente(request):
             fecha_nacimiento = data.get('fecha_nacimiento', '').strip()
             sexo = data.get('sexo', '').strip().upper()
 
-
             if not (paciente_id and ci and nombres and apepat and apemat and celular and fecha_nacimiento and sexo):
                 return JsonResponse({'status': 'error', 'message': 'Todos los campos son obligatorios.'})
-            
+
             errores = []
 
             if not re.match(r'^\d{7,10}$', ci):
@@ -226,6 +233,14 @@ def modificar_paciente(request):
                 errores.append('El campo de apellido paterno solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apemat):
                 errores.append('El campo de apellido materno solo debe contener letras.')
+
+            # Validar que la fecha de nacimiento no sea mayor que la fecha actual
+            try:
+                fecha_nacimiento_dt = datetime.strptime(fecha_nacimiento, '%Y-%m-%d')
+                if fecha_nacimiento_dt > datetime.now():
+                    errores.append('La fecha de nacimiento no puede ser una fecha futura.')
+            except ValueError:
+                errores.append('El formato de la fecha de nacimiento es incorrecto. Debe ser YYYY-MM-DD.')
 
             if errores:
                 return JsonResponse({'status': 'error', 'message': '<br>'.join(errores)})

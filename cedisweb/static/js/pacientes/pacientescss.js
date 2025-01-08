@@ -352,6 +352,11 @@ function registrar_paciente() {
                 if (response.message.includes("Ya existe un paciente registrado con esa cédula")) {
                     $("#txt_ci").addClass("is-invalid");
                 }
+                if (response.message.includes("La fecha de nacimiento no puede ser una fecha futura")) {
+                    $("#txt_fecha_nacimiento").removeClass("is-valid").addClass("is-invalid");
+                } else {
+                    $("#txt_fecha_nacimiento").removeClass("is-invalid").addClass("is-valid");
+                }
 
                 document.getElementById('div_mensaje_error').innerHTML = '<br>' +
                     '<div class="alert alert-danger alert-dismissible">' +
@@ -462,6 +467,11 @@ function modificarPaciente() {
                 }
                 if (response.message.includes("Ya existe un paciente registrado con esa cédula")) {
                     $("#txt_ci_editar").addClass("is-invalid");
+                }
+                if (response.message.includes("La fecha de nacimiento no puede ser una fecha futura")) {
+                    $("#txt_fecha_nacimiento_editar").removeClass("is-valid").addClass("is-invalid");
+                } else {
+                    $("#txt_fecha_nacimiento_editar").removeClass("is-invalid").addClass("is-valid");
                 }
 
                 document.getElementById('div_mensaje_error_editar').innerHTML = '<br>' +
