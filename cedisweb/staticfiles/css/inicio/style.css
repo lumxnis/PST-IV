@@ -1,0 +1,357 @@
+@import url('https://fonts.googleapis.com/css2? family= Poppins:wght@400;500;600;700;800;900 & display=swap');
+*{
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+body {
+    font-family:'Poppins', sans-serif;
+}
+
+
+.container{
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card img {  
+    width: 100px; /* Ajusta el tamaño según sea necesario */  
+    height: 100px; /* Mantén la altura igual para todas las imágenes */  
+    object-fit: cover; /* Esto asegura que la imagen cubra el espacio sin distorsionarse */  
+}
+.carousel-item{
+    height: 80vh;
+    min-height: 300px;
+}
+
+.carousel-caption{
+    bottom: 80px;
+    z-index: 2;
+}
+
+.carousel-caption h2 {
+    margin-top: 15px;
+    font-size: 45px;
+    margin-bottom: 95px;
+    color: #cdcdcd;
+}
+
+.carousel-caption h1{
+    
+    font-size: 45px;
+    text-transform: uppercase;
+    margin-bottom: 95px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+
+.carousel-caption p {
+
+    margin-bottom: 25px;
+    margin-top: 25px;
+    font-size: 22px;
+    line-height: 1.9;
+    color: #ffffff;
+    font-weight: bold;
+
+}
+
+.carousel-inner::before{
+    background-color: rgba(0, 0, 0, 0.26);
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top:0;
+    left: 0;
+    z-index: 1;
+}
+
+.services{
+    background-image: url("../../img/lab-1.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.services h2{
+    text-align: justify;
+    margin-top: 35px;
+    font-size: 35px;
+    margin-bottom: 10px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+
+
+.services h5{
+    padding: 10px;
+}
+
+.about{
+    display: flex;
+}
+
+.general-1{
+    width: 50%;
+    padding: 100px 50px 50px 100px;
+    background-color: #1c1b1b;
+}
+
+.general-1 h2{
+    color: #fff;
+    font-size: 30px;
+    text-align: center;
+}
+
+.general-2{
+    background-image:url("../../img/qualite-en-laboratoire-1150x576.jpg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover ;
+    width: 50%;
+}
+
+.general-3{
+    background-image:url("../../img/doctor-using-microscope-check-covid-sample.jpg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 50%;
+}
+
+h3{
+    font-size: 45px;
+    line-height: 20px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+}
+
+.p-general{
+    font: 18px;
+    color: #ebebeb;
+    padding: 20px;
+    margin: 25px 0 35px 0;
+    line-height: 1.5em;
+}
+
+.btn-1 {
+    display: inline-block;
+    padding: 11px 25px;
+    background-color: #303030; /* Fondo blanco */  
+    color: #ffffff; /* Color del texto negro */  
+    border: 2px solid rgb(255, 255, 255); /* Borde de color negro con opacidad */  
+    border-radius: 25px;   
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; 
+}
+
+.btn-1:hover{
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con ligera transparencia al pasar el mouse */  
+    color: #ffffff; /* Mantener el color del texto */  
+    border-color: rgb(255, 255, 255); /* Borde completamente opaco */  
+}
+
+.btn{
+    cursor: pointer;
+    transition: background-color 0.3s;
+    color: #fff;
+}
+.btn:hover{
+    color: #7c7d7f;
+}
+
+.p-general-1{
+    font: 18px;
+    color: #ebebeb;
+    padding: 22px;
+    margin: 25px 0 15px 0;
+    line-height: 1.5em;
+    text-align: center;
+}
+
+.general-1 h2{
+    font-size: 25px;
+    line-height: 30px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+}
+
+
+.navbar-nav a {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.navbar-dark .navbar-brand{
+    color: #fff;
+    font-size: 25px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.navbar-light .navbar-brand:focus, .navbar-light .navbar-brand:hover{
+    color: #000;
+}
+
+.w-100{
+    height: 100vh;
+
+}
+
+.navbar-toggler{
+    padding: 1px 5px;
+    font-size: 18px;
+    line-height: 0.3;
+}
+
+.services .card-body i{
+    font-size: 50px;
+
+}
+
+.team .card-body i {
+    font-size: 20px;
+
+}
+.team {
+background-image:url("../../img/lab-1.jpg");
+background-size: cover;
+background-repeat: no-repeat;
+background-position: center;
+
+}
+
+.col-12{
+    margin-bottom: 35px;
+}
+
+.container-b{
+    padding: 10px;
+    margin-bottom: 50px;
+}
+.container-b .btn-custom{  
+    background-color: #303030; /* Fondo blanco */  
+    color: #ffffff; /* Color del texto negro */  
+    border: 2px solid rgb(255, 255, 255); /* Borde de color negro con opacidad */  
+    border-radius: 25px;   
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Transiciones suaves */  
+}  
+
+/* Opcional: cambios de color al pasar el cursor */  
+.container-b .btn-custom:hover {  
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con ligera transparencia al pasar el mouse */  
+    color: #ffffff; /* Mantener el color del texto */  
+    border-color: rgb(255, 255, 255); /* Borde completamente opaco */  
+}
+
+
+.card h3{
+    font-size: 25px;
+}
+.img-fluid{
+    width: 100px; /* Cambia este valor según el tamaño que desees */  
+    height: 100px; /* Debe ser igual al ancho para mantener la forma circular */  
+    overflow: hidden; /* Esconde la parte de la imagen que sale del círculo */  
+    border-radius: 50%; /* Esto hace que el contenedor sea un círculo */   
+
+}
+.team h2{
+    font-size: 25px;
+    line-height: 30px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.footer p{
+    font-size: 25px;
+    line-height: 30px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.footer .telefono{
+    font-size: 10px;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+}
+
+.footer{
+    background-color:#100f0f;
+}
+
+
+
+@media(max-width: 768px) {
+    .navbar-nav{
+        text-align:justify;
+
+    }
+
+    .carousel-item{
+        height: 70vh;
+    }
+    .w-100{
+        height: 70vh;
+    }
+
+   
+    .carousel-caption h1 {
+        font-size: 15px;
+        margin: 0px;
+        padding: 0px;
+    }
+    .carousel-caption h2{
+        font-size: 15px;
+        margin: 0px;
+        padding: 0px;
+    }
+    
+    
+    .carousel-caption p{
+        width: 100%;
+        line-height: 1.5;
+        font-size: 14px;
+    }
+    .about-text{
+        padding-top: 50px;
+    }
+    .card{
+        margin-bottom: 30px;
+    }
+    .section-padding{
+        padding: 50px 0;
+    }
+    .services h2{
+        text-align: center;
+        font-size: 35px;
+    }
+
+    .about{
+        flex-direction: column;
+        background-image:url("../../img/view-laboratory-equipment-neon-lights\ \(1\).jpg");
+            
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+
+    }
+
+    .general-1{
+        width: 100%;
+        padding: 30px;
+        text-align: center;
+    }
+
+
+
+}

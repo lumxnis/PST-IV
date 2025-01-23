@@ -1,0 +1,95 @@
+/* Botones de DataTable */
+.dt-buttons .buttons-excel {
+    background-color: #28a745 !important; 
+    color: white !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.dt-buttons .buttons-excel:hover {
+    background-color: #218838 !important; 
+}
+
+.dt-buttons .buttons-pdf {
+    background-color: #ff6600 !important; 
+    color: white !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.dt-buttons .buttons-pdf:hover {
+    background-color: #cc5200 !important; 
+}
+
+.dt-buttons .buttons-print {
+    background-color: #6c757d !important; 
+    color: white !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.dt-buttons .buttons-print:hover {
+    background-color: #5a6268 !important; 
+}
+
+.dt-buttons .buttons-copy {
+    background-color: #ffffff !important; 
+    color: black !important;
+    border: 1px solid #ccc !important;
+    padding: 8px 12px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.dt-buttons .buttons-copy:hover {
+    background-color: #e6e6e6 !important; 
+}
+
+/* Estilos adicionales */
+.top {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.second {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.dataTables_filter {
+    margin-left: auto;
+    padding-bottom: 20px;
+}
+
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    margin-top: 10px;
+}
+
+
