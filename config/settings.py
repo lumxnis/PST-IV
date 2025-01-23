@@ -69,6 +69,7 @@ MIDDLEWARE = [
 ]
 
 WHITENOISE_SKIP_MISSING_FILES = True
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'config.urls'
 
