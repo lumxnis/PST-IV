@@ -20,14 +20,17 @@
         "Estilos",
         "filas",
         "generales",
+        "gunicorn",
         "Imprimir",
         "laboratoire",
         "Lógica",
         "notificacion",
         "Notificación",
         "período",
+        "PYTHONPATH",
         "qualite",
         "quitar",
-        "traer"
+        "traer",
+        "wsgi"
     ]
 }
