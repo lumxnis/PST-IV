@@ -68,6 +68,8 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
+WHITENOISE_SKIP_MISSING_FILES = True
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
