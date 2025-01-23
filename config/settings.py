@@ -70,8 +70,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-WHITENOISE_SKIP_MISSING_FILES = True
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
