@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: CEDIS C.A
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn config.wsgi:application
-    envVars:
-      - key: PYTHONPATH
-        value: /opt/render/project/src:/opt/render/project/src/PST-IV/APPS
