@@ -167,6 +167,7 @@ $('#tabla_ver_detalle').on('click', '.eliminar', function () {
     if (tbl_ver_detalle.row(this).child.isShown()) {
         var data = tbl_ver_detalle.row(this).data();
     }
+    console.log("Datos de la fila seleccionada:", data);
 Swal.fire({
         title: 'Estás seguro de que desea eliminar el examen '+ data.examen_nombre +'?',
         text: "Una vez realizado esto el examen se quitará del detalle!",
@@ -177,7 +178,7 @@ Swal.fire({
         confirmButtonText: "Sí, Confirmar!"
     }).then((result) => {
         if (result.isConfirmed) {
-            Eliminar_Realizar_Examen(parseInt(data.id))
+            Eliminar_Realizar_Examen(parseInt(data.realizar_examen_detalle_id))
         }
     });
 });

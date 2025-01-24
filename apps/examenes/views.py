@@ -803,7 +803,6 @@ def realizar_examen_eliminar(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         p_id = data.get('id')
-
         try:
             with connection.cursor() as cursor:
                 cursor.execute("CALL SP_ELIMINAR_DETALLE_REALIZAR_EXAMEN(%s);", [p_id])
