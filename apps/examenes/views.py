@@ -99,19 +99,27 @@ def registrar_examen(request):
                 return JsonResponse({'status': 'error', 'message': 'El campo Examen no puede estar vacío.'})
 
             with connection.cursor() as cursor:
-                cursor.callproc('sp_registrar_examen', [examen_nombre, analisis_id])
-                resultado = cursor.fetchone()
+                # Verificar si el examen ya existe
+                cursor.execute(
+                    "SELECT COUNT(*) FROM examen WHERE LOWER(examen_nombre) = LOWER(%s) AND analisis_id_id = %s",
+                    [examen_nombre, analisis_id]
+                )
+                cantidad = cursor.fetchone()[0]
 
-            if resultado[0] == 1:
-                return JsonResponse({'status': 'success', 'message': 'Examen registrado exitosamente.'})
-            elif resultado[0] == 2:
-                return JsonResponse({'status': 'error', 'message': 'El examen ya existe en el mismo análisis.'})
+                if cantidad == 0:
+                    cursor.execute(
+                        "INSERT INTO examen (examen_nombre, analisis_id_id, examen_fregistro, examen_estatus) "
+                        "VALUES (%s, %s, CURRENT_DATE, 'ACTIVO')",
+                        [examen_nombre, analisis_id]
+                    )
+                    return JsonResponse({'status': 'success', 'message': 'Examen registrado exitosamente.'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'El examen ya existe en el mismo análisis.'})
 
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
-
 
 ##Obtener Estatus
 @login_required
@@ -148,15 +156,23 @@ def modificar_examen(request):
                 return JsonResponse({'status': 'error', 'message': 'El campo Examen no puede estar vacío.'})
 
             with connection.cursor() as cursor:
-                cursor.callproc('sp_modificar_examen', [examen_id, examen_nombre, analisis_id, examen_estatus])
-                resultado = cursor.fetchone()
+                # Verificar si el nombre del examen ya existe en el mismo análisis
+                cursor.execute(
+                    "SELECT COUNT(*) FROM examen WHERE LOWER(examen_nombre) = LOWER(%s) AND analisis_id_id = %s AND id != %s",
+                    [examen_nombre, analisis_id, examen_id]
+                )
+                cantidad = cursor.fetchone()[0]
 
-            if resultado[0] == 1:
-                return JsonResponse({'status': 'success', 'message': 'Examen modificado exitosamente.'})
-            elif resultado[0] == 2:
-                return JsonResponse({'status': 'error', 'message': 'El nombre del examen ya existe en el mismo análisis.'})
-            else:
-                return JsonResponse({'status': 'error', 'message': 'No se pudo modificar el Examen.'})
+                if cantidad == 0:
+                    cursor.execute(
+                        "UPDATE examen "
+                        "SET examen_nombre = %s, analisis_id_id = %s, examen_estatus = %s "
+                        "WHERE id = %s",
+                        [examen_nombre, analisis_id, examen_estatus, examen_id]
+                    )
+                    return JsonResponse({'status': 'success', 'message': 'Examen modificado exitosamente.'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'El nombre del examen ya existe en el mismo análisis.'})
 
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
@@ -308,7 +324,7 @@ def medico(request):
 def listar_medicos(request):
     if request.method == 'POST':
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM listar_medicos()")
+            cursor.execute("CALL listar_medicos()")
             rows = cursor.fetchall()
             columns = [col[0] for col in cursor.description]
             medicos = [dict(zip(columns, row)) for row in rows]
@@ -522,7 +538,7 @@ def especialidad(request):
 def listar_especialidades(request):
     if request.method == 'POST':
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM listar_especialidades()")
+            cursor.execute("CALL listar_especialidades()")
             rows = cursor.fetchall()
 
             data = []
@@ -680,7 +696,6 @@ def obtener_examenes_por_analisis(request):
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
-
 ##Registro Realizar Examen
 @login_required
 @csrf_exempt
@@ -702,7 +717,15 @@ def realizar_examen_registro(request):
                     return JsonResponse({'status': 'error', 'message': 'Debe seleccionar a un paciente, un médico y un usuario.'}, status=400)
 
                 with connection.cursor() as cursor:
-                    cursor.execute("SELECT sp_registrar_realizar_examen(%s, %s, %s)", [idpaciente, idusuario, idmedico])
+                    # Registro del examen directamente sin procedimiento almacenado
+                    cursor.execute(
+                        """
+                        INSERT INTO realizar_examen (paciente_id_id, usuario_id_id, realizarexamen_estatus, medico_id_id, realizarexamen_fregistro)
+                        VALUES (%s, %s, 'PENDIENTE', %s, CURRENT_DATE)
+                        """,
+                        [idpaciente, idusuario, idmedico]
+                    )
+                    cursor.execute("SELECT LAST_INSERT_ID()")
                     new_id = cursor.fetchone()[0]
 
                 return JsonResponse({'id': new_id, 'status': 'success', 'message': 'Examen registrado exitosamente.'}, content_type="application/json")
@@ -737,7 +760,7 @@ def realizar_examen_detalle(request):
             
             with connection.cursor() as cursor:
                 for i in range(len(examenes)):
-                    cursor.execute("SELECT sp_registrar_detalle_realizar_examen(%s, %s, %s)", [idexamen, examenes[i], analisis[i]])
+                    cursor.execute("CALL sp_registrar_detalle_realizar_examen(%s, %s, %s)", [idexamen, examenes[i], analisis[i]])
 
             return JsonResponse({'status': 'success', 'message': 'Examen registrado exitosamente.'})
         except Exception as e:
@@ -841,7 +864,6 @@ def listar_resultado_examen(request):
         search_value = request.POST.get('search[value]', '')
 
         try:
-
             with connection.cursor() as cursor:
                 cursor.execute("SELECT COUNT(*) FROM resultado")
                 total_count = cursor.fetchone()[0]
@@ -853,7 +875,7 @@ def listar_resultado_examen(request):
                     paciente.paciente_dni,
                     usuario.username,
                     resultado.resultado_fregistro,
-                    resultado.resultado_estatus::CHAR
+                    CAST(resultado.resultado_estatus AS CHAR) AS resultado_estatus
                 FROM 
                     resultado
                 INNER JOIN
@@ -863,12 +885,12 @@ def listar_resultado_examen(request):
                 INNER JOIN
                     paciente ON realizar_examen.paciente_id_id = paciente.id
                 WHERE
-                    resultado.id::text ILIKE %s OR
-                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) ILIKE %s OR
-                    paciente.paciente_dni ILIKE %s OR
-                    usuario.username ILIKE %s OR
-                    resultado.resultado_fregistro::text ILIKE %s OR
-                    resultado.resultado_estatus::text ILIKE %s
+                    CAST(resultado.id AS CHAR) LIKE %s OR
+                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) LIKE %s OR
+                    paciente.paciente_dni LIKE %s OR
+                    usuario.username LIKE %s OR
+                    CAST(resultado.resultado_fregistro AS CHAR) LIKE %s OR
+                    CAST(resultado.resultado_estatus AS CHAR) LIKE %s
                 LIMIT %s OFFSET %s;
                 """
                 cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', length, start])
@@ -886,12 +908,12 @@ def listar_resultado_examen(request):
                 INNER JOIN
                     paciente ON realizar_examen.paciente_id_id = paciente.id
                 WHERE
-                    resultado.id::text ILIKE %s OR
-                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) ILIKE %s OR
-                    paciente.paciente_dni ILIKE %s OR
-                    usuario.username ILIKE %s OR
-                    resultado.resultado_fregistro::text ILIKE %s OR
-                    resultado.resultado_estatus::text ILIKE %s
+                    CAST(resultado.id AS CHAR) LIKE %s OR
+                    CONCAT_WS(' ', paciente.paciente_apepaterno, paciente.paciente_nombres) LIKE %s OR
+                    paciente.paciente_dni LIKE %s OR
+                    usuario.username LIKE %s OR
+                    CAST(resultado.resultado_fregistro AS CHAR) LIKE %s OR
+                    CAST(resultado.resultado_estatus AS CHAR) LIKE %s
                 """, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%'])
                 filtered_count = cursor.fetchone()[0]
 
@@ -910,13 +932,15 @@ def listar_resultado_examen(request):
             return JsonResponse(response)
 
         except Exception as e:
-            print(f"Error al listar resultados de examen: {e}")
+            print(f"Error al listar resultados de examen: {e.__class__.__name__}: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 ##LISTADO EXAMENES PENDIENTES
+from datetime import datetime
+
 @login_required
 @csrf_exempt
 def listar_pacientes_examenes(request):
@@ -939,7 +963,7 @@ def listar_pacientes_examenes(request):
 
         try:
             with connection.cursor() as cursor:
-                query = f"""
+                query = """
                 SELECT 
                     realizar_examen.id,
                     realizar_examen.paciente_id_id,
@@ -965,12 +989,12 @@ def listar_pacientes_examenes(request):
                     realizar_examen.medico_id_id = medico.medico_id
                 WHERE 
                     realizar_examen.realizarexamen_estatus = 'PENDIENTE' AND
-                    (paciente.paciente_dni ILIKE %s OR
-                    CONCAT(paciente.paciente_apepaterno, ' ', paciente.paciente_nombres) ILIKE %s)
-                ORDER BY {order_column} {order_direction}
-                OFFSET %s LIMIT %s;
-                """
-                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', start, length])
+                    (paciente.paciente_dni LIKE %s OR
+                    CONCAT(paciente.paciente_apepaterno, ' ', paciente.paciente_nombres) LIKE %s)
+                ORDER BY {} {}
+                LIMIT %s OFFSET %s;
+                """.format(order_column, order_direction)
+                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', length, start])
                 resultados = cursor.fetchall()
                 columnas = [col[0] for col in cursor.description]
 
@@ -999,8 +1023,8 @@ def listar_pacientes_examenes(request):
                     INNER JOIN paciente ON realizar_examen.paciente_id_id = paciente.id
                     INNER JOIN medico ON realizar_examen.medico_id_id = medico.medico_id
                     WHERE realizar_examen.realizarexamen_estatus = 'PENDIENTE' AND
-                    (paciente.paciente_dni ILIKE %s OR
-                    CONCAT(paciente.paciente_apepaterno, ' ', paciente.paciente_nombres) ILIKE %s);
+                    (paciente.paciente_dni LIKE %s OR
+                    CONCAT(paciente.paciente_apepaterno, ' ', paciente.paciente_nombres) LIKE %s);
                 """, [f'%{search_value}%', f'%{search_value}%'])
                 filtered_count = cursor.fetchone()[0]
 
@@ -1034,7 +1058,7 @@ def calcular_edad(fecha_nacimiento):
     edad_dias = (hoy - fecha_nacimiento).days
     return f"{edad_dias} días"
 
-##LISTAR DETALLE ANALISIS 
+## LISTAR DETALLE ANALISIS 
 @login_required
 @csrf_exempt
 def realizarexamen_detalle(request):
@@ -1044,7 +1068,27 @@ def realizarexamen_detalle(request):
         
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM SP_LISTAR_DETALLE_ANALISIS_RESULTADO(%s)", [idexamen])
+                query = """
+                SELECT 
+                    realizar_examen_detalle.id AS realizar_examen_detalle_id,
+                    realizar_examen_detalle.examen_id AS realizar_examen_detalle_examen_id,
+                    realizar_examen_detalle.analisis_id AS realizar_examen_detalle_analisis_id,
+                    examen.examen_nombre AS examen_nombre,
+                    analisis.analisis_nombre AS analisis_nombre
+                FROM 
+                    realizar_examen_detalle
+                INNER JOIN
+                    analisis
+                ON 
+                    realizar_examen_detalle.analisis_id = analisis.id
+                INNER JOIN
+                    examen
+                ON 
+                    realizar_examen_detalle.examen_id = examen.id
+                WHERE 
+                    realizar_examen_detalle.realizarexamen_id = %s
+                """
+                cursor.execute(query, [idexamen])
                 resultados = cursor.fetchall()
                 columnas = [col[0] for col in cursor.description]
 
@@ -1066,10 +1110,9 @@ def realizarexamen_detalle(request):
             print(f"Error al listar detalles del análisis: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    else:
-        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-##REGISTRAR RESULTADO EXAMEN
+### REGISTRAR RESULTADO EXAMEN
 @login_required
 @csrf_exempt
 def realizar_resultado_registro(request):
@@ -1079,14 +1122,26 @@ def realizar_resultado_registro(request):
         idusuario = data.get('idusuario')
 
         try:
+            if not idrealizarexamen or not idusuario:
+                return JsonResponse({'status': 'error', 'message': 'Todos los parámetros son necesarios.'}, status=400)
+
             with connection.cursor() as cursor:
-                cursor.callproc('SP_REGISTRAR_RESULTADO_EXAMEN', [idusuario, idrealizarexamen])
-                resultado_id = cursor.fetchone()
+                # Inserción en la tabla resultado
+                cursor.execute("""
+                    INSERT INTO resultado (
+                        usuario_id_id, 
+                        resultado_fregistro, 
+                        resultado_estatus, 
+                        realizarexamen_id_id
+                    ) VALUES (%s, CURRENT_DATE, '1', %s)
+                """, [idusuario, idrealizarexamen])
+                
+                # Obtener el id del resultado recién creado
+                cursor.execute("SELECT LAST_INSERT_ID()")
+                resultado_id = cursor.fetchone()[0]
 
-                if resultado_id is None or resultado_id[0] is None:
-                    raise Exception("No se pudo registrar el resultado")
-
-                resultado_id = resultado_id[0]
+            if not resultado_id:
+                raise Exception("No se pudo registrar el resultado")
 
             return JsonResponse({'status': 'success', 'message': 'Resultado registrado correctamente.', 'resultado_id': resultado_id})
 
@@ -1113,7 +1168,7 @@ def guardar_detalle_analisis(request):
                 file_name = default_storage.save(f'uploads/{archivo.name}', archivo)
                 with connection.cursor() as cursor:
                     cursor.execute("""
-                        SELECT sp_registrar_resultado_detalle(%s, %s, %s)
+                        CALL sp_registrar_resultado_detalle(%s, %s, %s)
                     """, [resultado_id, idrealizarexamen, file_name])
 
         return JsonResponse({'status': 'success', 'message': 'Detalles guardados correctamente.'})
@@ -1128,7 +1183,7 @@ def listar_resultados_editar(request):
         id = request.POST.get('id')
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM SP_LISTAR_RESULTADO_DETALLE_EDITAR(%s)", [id])
+                cursor.execute("CALL SP_LISTAR_RESULTADO_DETALLE_EDITAR(%s)", [id])
                 rows = cursor.fetchall()
 
                 columns = [

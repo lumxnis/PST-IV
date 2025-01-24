@@ -87,9 +87,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'cedis_database',
-        'USER': 'postgres',
+        'USER': 'root',
         'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '',

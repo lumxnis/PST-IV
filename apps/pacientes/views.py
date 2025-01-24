@@ -49,7 +49,7 @@ def listar_pacientes(request):
             'paciente_sexo': 'paciente_sexo',
             'date_joined': 'date_joined'
         }
-        
+
         order_column = valid_columns.get(order_column_name, 'date_joined')  # Ordenar por 'date_joined'
 
         try:
@@ -63,16 +63,16 @@ def listar_pacientes(request):
                     fecha_nacimiento,
                     paciente_sexo,
                     date_joined
-                FROM public.paciente
+                FROM paciente
                 WHERE 
-                    paciente_dni ILIKE %s OR
-                    CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) ILIKE %s OR
-                    paciente_celular ILIKE %s OR
-                    paciente_sexo ILIKE %s
+                    paciente_dni LIKE %s OR
+                    CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) LIKE %s OR
+                    paciente_celular LIKE %s OR
+                    paciente_sexo LIKE %s
                 ORDER BY {order_column} {order_direction}
-                OFFSET %s LIMIT %s;
+                LIMIT %s OFFSET %s;
                 """
-                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', start, length])
+                cursor.execute(query, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', length, start])
                 resultados = cursor.fetchall()
                 columnas = [col[0] for col in cursor.description]
 
@@ -88,9 +88,15 @@ def listar_pacientes(request):
                 del d['fecha_nacimiento']
 
             with connection.cursor() as cursor:
-                cursor.execute("SELECT COUNT(*) FROM public.paciente;")
+                cursor.execute("SELECT COUNT(*) FROM paciente;")
                 total_count = cursor.fetchone()[0]
-                cursor.execute("SELECT COUNT(*) FROM public.paciente WHERE paciente_dni ILIKE %s OR CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) ILIKE %s OR paciente_celular ILIKE %s OR paciente_sexo ILIKE %s;", [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%'])
+                cursor.execute("""
+                SELECT COUNT(*) FROM paciente 
+                WHERE paciente_dni LIKE %s OR 
+                      CONCAT(paciente_apepaterno, ' ', paciente_apematerno, ' ', paciente_nombres) LIKE %s OR 
+                      paciente_celular LIKE %s OR
+                      paciente_sexo LIKE %s;
+                """, [f'%{search_value}%', f'%{search_value}%', f'%{search_value}%', f'%{search_value}%'])
                 filtered_count = cursor.fetchone()[0]
 
             response = {

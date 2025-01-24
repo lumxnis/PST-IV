@@ -207,7 +207,7 @@ function listado_Detalle_Analisis(id) {
             }
         },
         "columns": [
-            { "data": "id" },
+            { "data": "realizar_examen_detalle_id" },
             { "data": "analisis_nombre" },
             { "data": "examen_nombre" },
             { "defaultContent": "<input type='file' class='archivo form-control'>" }

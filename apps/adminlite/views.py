@@ -141,13 +141,12 @@ def listar_usuarios(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-## Cargar Roles
 @login_required
 def cargar_roles(request):
     if request.method == 'POST':
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT rol_id, rol_nombre, rol_estatus FROM sp_listar_select_rol()")
+                cursor.callproc('sp_listar_select_rol')
                 roles = cursor.fetchall()
 
             roles_list = [{'rol_id': rol[0], 'rol_nombre': rol[1]} for rol in roles]
@@ -157,7 +156,6 @@ def cargar_roles(request):
             return JsonResponse({'error': 'Error al cargar los roles: ' + str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=400)
-
 
 ## Registrar Usuario
 @login_required
@@ -179,7 +177,7 @@ def registrar_usuario(request):
                 return JsonResponse({'success': False, 'message': 'Todos los campos son obligatorios.'})
 
             if not re.match(r'^[a-zA-Z0-9_@.-]+$', usuario):
-                errores.append('El nombre de usuario solo debe contener letras, números, y los caracteres especiales _ @ . -')
+                errores.append('El nombre de usuario solo debe contener letras, números, y los caracteres MODIFICAR USUARIOes _ @ . -')
 
             if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', contra):
                 errores.append('La contraseña debe tener al menos 8 caracteres, incluyendo una letra y un número.')
@@ -450,7 +448,7 @@ def actualizar_foto(request):
 def listar_notificaciones(request):
     with connection.cursor() as cursor:
         # Consulta para notificaciones
-        cursor.execute("SELECT * FROM sp_listar_notificaciones()")
+        cursor.execute("CALL sp_listar_notificaciones()")
         notificaciones = cursor.fetchall()
         notificaciones_results = [
             {"paciente_nombre": row[0], "realizar_examen_fregistro": str(row[1]), "medico_nombre": row[2]}
