@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             // Actualizar las cajas de resultados
-            document.querySelector('.small-box.bg-success .inner h3').textContent = data.resultados_dados;
+            document.querySelector('.small-box.bg-naranja .inner h3').textContent = data.resultados_dados;
             document.querySelector('.small-box.bg-primary .inner h3').textContent = data.examenes_realizados;
 
             // Crear el gráfico de barra con los datos recibidos
