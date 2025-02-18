@@ -382,8 +382,8 @@ def registrar_medico(request):
 
             if not re.match(r'^\d{7,10}$', cedula):
                 errores.append('La cédula debe contener entre 7 y 10 dígitos.')
-            if not re.match(r'^\+58\d{10}$', telefono):
-                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^\+58(0424|0414|0416|0426|0412)\d{7}$', telefono):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
                 errores.append('El campo de nombres solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apepat):
@@ -487,8 +487,8 @@ def modificar_medico(request):
 
             if not re.match(r'^\d{7,10}$', medico_nrodocumento):
                 errores.append('La cédula debe contener entre 7 y 10 dígitos.')
-            if not re.match(r'^\+58\d{10}$', medico_movil):
-                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^\+58(0424|0414|0416|0426|0412)\d{7}$', medico_movil):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', medico_nombre):
                 errores.append('El campo de nombres solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', medico_apepat):

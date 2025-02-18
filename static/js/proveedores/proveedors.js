@@ -209,8 +209,8 @@ function limpiar_modal_prov() {
 
 //VALIDACIONES//
 function validarTelefono(tlf) {
-    const regex = /^\+58\d{10}$/;
-    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
+    const regex = /^\+58(0424|0414|0416|0426|0412)\d{7}$/;
+    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos." };
 }
 
 function validarCedula(ci) {

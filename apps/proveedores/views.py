@@ -108,8 +108,8 @@ def registrar_prov(request):
 
             if not re.match(r'^\d{7,10}$', ci):
                 errores.append('La cédula debe contener entre 7 y 10 dígitos.')
-            if not re.match(r'^\+58\d{10}$', telefono):
-                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^\+58(0424|0414|0416|0426|0412)\d{7}$', telefono):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombre):
                 errores.append('El campo de nombre solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apellido):
@@ -161,8 +161,8 @@ def modificar_prov(request):
 
             if not re.match(r'^\d{8,10}$', cedula):
                 errores.append('La cédula debe contener entre 8 y 10 dígitos.')
-            if not re.match(r'^\+58\d{10}$', telefono):
-                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^\+58(0424|0414|0416|0426|0412)\d{7}$', telefono):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombre):
                 errores.append('El campo de nombre solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apellido):

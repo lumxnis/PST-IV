@@ -151,14 +151,16 @@ def registrar_paciente(request):
 
             if not re.match(r'^\d{7,10}$', ci):
                 errores.append('La cédula debe contener entre 7 y 10 dígitos.')
-            if not re.match(r'^\+58\d{10}$', tlf):
-                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^\+58(0424|0414|0416|0426|0412)\d{7}$', tlf):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
                 errores.append('El campo de nombres solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apepat):
                 errores.append('El campo de apellido paterno solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apemat):
                 errores.append('El campo de apellido materno solo debe contener letras.')
+            if not fecha_nacimiento or fecha_nacimiento.strip() == "":
+                errores.append("El campo de la fecha de nacimiento es obligatorio.")
             if Paciente.objects.filter(paciente_dni=ci).exists():
                 errores.append('Ya existe un paciente registrado con esa cédula de identidad.')
 
@@ -231,8 +233,8 @@ def modificar_paciente(request):
 
             if not re.match(r'^\d{7,10}$', ci):
                 errores.append('La cédula debe contener entre 7 y 10 dígitos.')
-            if not re.match(r'^\+58\d{10}$', celular):
-                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos.')
+            if not re.match(r'^\+58(0424|0414|0416|0426|0412)\d{7}$', celular):
+                errores.append('El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', nombres):
                 errores.append('El campo de nombres solo debe contener letras.')
             if not re.match(r'^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$', apepat):

@@ -170,8 +170,8 @@ function validarCedula(ci) {
 }
 
 function validarTelefono(tlf) {
-    const regex = /^\+58\d{10}$/;
-    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
+    const regex = /^\+58(0424|0414|0416|0426|0412)\d{7}$/;
+    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos." };
 }
 
 function validarFecha(fecha) {
@@ -454,7 +454,7 @@ function modificar_medico() {
 
 //VALIDACION MODIFICAR MEDICO
 function validarInput(ids, mensajeErrorId) {
-    const { ci, nombres, apepat, apemat, direccion, telefono, fecha_nacimiento } = ids;
+    const { ci, nombres, apepat, apemat, direccion, telefono, fecha_nacimiento, especialidad } = ids;
     let errores = [];
     let camposVacios = false;
     let nombreApellidoErrores = [];
@@ -488,6 +488,10 @@ function validarInput(ids, mensajeErrorId) {
     validarCampoYAgregarError(direccion, valor => ({
         valido: valor.length > 0,
         mensaje: "El campo de la dirección es obligatorio."
+    }));
+    validarCampoYAgregarError(especialidad, valor => ({
+        valido: valor.length > 0,
+        mensaje: "El campo de la especialidad es obligatorio."
     }));
 
     if (camposVacios) {

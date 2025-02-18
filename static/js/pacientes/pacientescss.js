@@ -220,59 +220,61 @@ function validarCedula(ci) {
 }
 
 function validarTelefono(tlf) {
-    const regex = /^\+58\d{10}$/;
-    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de 10 dígitos." };
+    const regex = /^\+58(0424|0414|0416|0426|0412)\d{7}$/;
+    return { valido: regex.test(tlf), mensaje: "El formato del número de teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos." };
 }
 
 function validarFecha(fecha) {
-    return { valido: fecha.length > 0, mensaje: "El campo de la fecha de nacimiento es obligatorio." };
+    const valido = fecha.trim().length > 0;
+    return { valido: valido, mensaje: "El campo de la fecha de nacimiento es obligatorio." };
 }
 
-function validarNombre(valor) {
+function validarNombreApellido(valor) {
     const regex = /^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$/;
-    return { valido: regex.test(valor), mensaje: "El campo Nombre solo debe contener letras." };
-}
-
-function validarApellido(valor) {
-    const regex = /^[a-zA-Z áéíóúÁÉÍÓÚñÑ]+$/;
-    return { valido: regex.test(valor), mensaje: "El campo Apellido solo debe contener letras." };
+    return { valido: regex.test(valor), mensaje: "El campo Nombre y Apellido solo deben contener letras." };
 }
 
 function validarSelect(selectId) {
     const selectElement = document.getElementById(selectId);
     if (selectElement) {
         const valor = selectElement.value.trim();
-        return { valido: valor !== '', mensaje: "" };
+        return { valido: valor !== '', mensaje: "El campo de selección es obligatorio." };
     }
-    return { valido: false, mensaje: "" };
+    return { valido: false, mensaje: "El campo de selección es obligatorio." };
 }
 
 function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, selectSexo, mensajeErrorId) {
-    let camposVacios = false;
+    const errores = [];
+    const nombreApellidoErrores = [];
     const mensajeErrorDiv = document.getElementById(mensajeErrorId);
+    let camposVacios = false;
 
     const validarCampoYAgregarClase = (campoId, validarFn) => {
         const campo = document.getElementById(campoId);
         if (campo) {
             const valor = campo.value.trim();
+            const resultado = validarFn(valor);
+
             if (valor.length === 0) {
                 camposVacios = true;
                 $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
-            } else {
-                const resultado = validarFn(valor);
-                if (!resultado.valido) {
-                    $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+            } else if (!resultado.valido) {
+                $("#" + campoId).removeClass("is-valid").addClass("is-invalid");
+                if (campoId === nombre || campoId === apepat || campoId === apemat) {
+                    nombreApellidoErrores.push(resultado.mensaje);
                 } else {
-                    $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
+                    errores.push(resultado.mensaje);
                 }
+            } else {
+                $("#" + campoId).removeClass("is-invalid").addClass("is-valid");
             }
         }
     };
 
     validarCampoYAgregarClase(ci, validarCedula);
-    validarCampoYAgregarClase(nombre, validarNombre);
-    validarCampoYAgregarClase(apepat, validarApellido);
-    validarCampoYAgregarClase(apemat, validarApellido);
+    validarCampoYAgregarClase(nombre, validarNombreApellido);
+    validarCampoYAgregarClase(apepat, validarNombreApellido);
+    validarCampoYAgregarClase(apemat, validarNombreApellido);
     validarCampoYAgregarClase(tlf, validarTelefono);
     validarCampoYAgregarClase(fechaNacimiento, validarFecha);
 
@@ -280,6 +282,7 @@ function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, selectSe
     if (!selectSexoResultado.valido) {
         camposVacios = true;
         $("#" + selectSexo).removeClass("is-valid").addClass("is-invalid");
+        errores.push(selectSexoResultado.mensaje);
     } else {
         $("#" + selectSexo).removeClass("is-invalid").addClass("is-valid");
     }
@@ -290,6 +293,20 @@ function validarInput(ci, nombre, apepat, apemat, tlf, fechaNacimiento, selectSe
                 '<div class="alert alert-danger alert-dismissible">' +
                 '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
                 '<h5><i class="icon fas fa-ban"></i> Todos los campos son obligatorios.</h5></div>';
+        }
+        return false;
+    }
+
+    if (nombreApellidoErrores.length > 0) {
+        errores.push("Los campos de nombre y los apellidos solo pueden incluir letras.");
+    }
+
+    if (errores.length > 0) {
+        if (mensajeErrorDiv) {
+            mensajeErrorDiv.innerHTML = '<br>' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
+                '<h5><i class="icon fas fa-ban"></i> Error de Validación</h5>' + errores.join("<br>") + '</div>';
         }
         return false;
     }
@@ -308,7 +325,9 @@ function registrar_paciente() {
     const fecha_nacimiento = document.getElementById("txt_fecha_nacimiento").value.trim();
     const sexo = document.getElementById("select_sexo").value.trim();
 
-    validarInput("txt_ci", "txt_nombres", "txt_apepat", "txt_apemat", "txt_tlf", "txt_fecha_nacimiento", "select_sexo");
+    if (!validarInput("txt_ci", "txt_nombres", "txt_apepat", "txt_apemat", "txt_tlf", "txt_fecha_nacimiento", "select_sexo", 'div_mensaje_error')) {
+        return;
+    }
 
     $.ajax({
         url: '/registrar_paciente/',
@@ -346,13 +365,15 @@ function registrar_paciente() {
                 if (response.message.includes("El campo de apellido materno solo debe contener letras")) {
                     $("#txt_apemat").addClass("is-invalid");
                 }
-                if (response.message.includes("El formato del número de teléfono es incorrecto")) {
+                if (response.message.includes("El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.")) {
                     $("#txt_tlf").addClass("is-invalid");
                 }
                 if (response.message.includes("Ya existe un paciente registrado con esa cédula")) {
                     $("#txt_ci").addClass("is-invalid");
                 }
                 if (response.message.includes("La fecha de nacimiento no puede ser una fecha futura")) {
+                    $("#txt_fecha_nacimiento").removeClass("is-valid").addClass("is-invalid");
+                } else if (response.message.includes("El campo de la fecha de nacimiento es obligatorio")) {
                     $("#txt_fecha_nacimiento").removeClass("is-valid").addClass("is-invalid");
                 } else {
                     $("#txt_fecha_nacimiento").removeClass("is-invalid").addClass("is-valid");
@@ -419,9 +440,11 @@ function modificarPaciente() {
     const fecha_nacimiento = document.getElementById("txt_fecha_nacimiento_editar").value.trim();
     const sexo = document.getElementById("select_sexo_editar").value.trim();
 
-    const id = document.getElementById("txt_ci_editar").getAttribute("data-id")
+    const id = document.getElementById("txt_ci_editar").getAttribute("data-id");
 
-    validarInput("txt_ci_editar", "txt_nombres_editar", "txt_apepat_editar", "txt_apemat_editar", "txt_tlf_editar", "txt_fecha_nacimiento_editar", "select_sexo_editar", "div_mensaje_error_editar")
+    if (!validarInput("txt_ci_editar", "txt_nombres_editar", "txt_apepat_editar", "txt_apemat_editar", "txt_tlf_editar", "txt_fecha_nacimiento_editar", "select_sexo_editar", "div_mensaje_error_editar")) {
+        return;
+    }
 
     const data = {
         id: id,
@@ -462,13 +485,15 @@ function modificarPaciente() {
                 if (response.message.includes("El campo de apellido materno solo debe contener letras")) {
                     $("#txt_apemat_editar").addClass("is-invalid");
                 }
-                if (response.message.includes("El formato del número de teléfono es incorrecto")) {
+                if (response.message.includes("El formato del teléfono es incorrecto. Debe ser +58 seguido de un operador válido (por ejemplo, 0414, 0412, 0416) y 7 dígitos.")) {
                     $("#txt_tlf_editar").addClass("is-invalid");
                 }
                 if (response.message.includes("Ya existe un paciente registrado con esa cédula")) {
                     $("#txt_ci_editar").addClass("is-invalid");
                 }
                 if (response.message.includes("La fecha de nacimiento no puede ser una fecha futura")) {
+                    $("#txt_fecha_nacimiento_editar").removeClass("is-valid").addClass("is-invalid");
+                } else if (response.message.includes("El campo de la fecha de nacimiento es obligatorio")) {
                     $("#txt_fecha_nacimiento_editar").removeClass("is-valid").addClass("is-invalid");
                 } else {
                     $("#txt_fecha_nacimiento_editar").removeClass("is-invalid").addClass("is-valid");
@@ -489,6 +514,7 @@ function modificarPaciente() {
         }
     });
 }
+
 
 
 
